@@ -96,15 +96,14 @@
     }
 
     main {
-  padding: 20px;
-  max-width: 1400px; /* было 1200 */
-  margin: 0 auto 40px;
-  display: grid;
-  /* правая колонка шире левой */
-  grid-template-columns: minmax(0, 1.0fr) minmax(0, 2.1fr);
-  gap: 20px;
-}
-
+      padding: 20px;
+      max-width: 1400px; /* расширили */
+      margin: 0 auto 40px;
+      display: grid;
+      /* правая колонка шире левой */
+      grid-template-columns: minmax(0, 1fr) minmax(0, 2.1fr);
+      gap: 20px;
+    }
 
     @media (max-width: 960px) {
       main {
@@ -163,6 +162,7 @@
       display: flex;
       gap: 10px;
       margin-bottom: 8px;
+      flex-wrap: wrap;
     }
 
     .form-group {
@@ -305,24 +305,21 @@
       color: var(--error-color);
     }
 
-   .table-wrapper {
-  border-radius: 14px;
-  border: 1px solid var(--border-soft);
-  margin-top: 8px;
-  background: rgba(2, 11, 26, 0.95);
-  /* важно: позволяем горизонтальный скролл */
-  overflow-x: auto;
-  overflow-y: hidden;
-}
+    .table-wrapper {
+      border-radius: 14px;
+      border: 1px solid var(--border-soft);
+      margin-top: 8px;
+      background: rgba(2, 11, 26, 0.95);
+      overflow-x: auto;  /* горизонтальная прокрутка при необходимости */
+      overflow-y: hidden;
+    }
 
-
-   table {
-  width: 100%;
-  min-width: 900px; /* таблица не сжимается слишком узко */
-  border-collapse: collapse;
-  font-size: 0.8rem;
-}
-
+    table {
+      width: 100%;
+      min-width: 900px; /* чтобы столбцы не сжимались слишком сильно */
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
 
     thead {
       background: linear-gradient(90deg, rgba(165, 0, 68, 0.9), rgba(0, 77, 152, 0.9));
@@ -446,112 +443,6 @@
       font-size: 0.78rem;
       color: var(--text-muted);
     }
-
-/* Адаптив под телефон (iPhone 16 Pro Max и похожие экраны) */
-@media (max-width: 600px) {
-  body {
-    font-size: 14px;
-  }
-
-  header {
-    padding: 10px 12px;
-  }
-
-  .logo-title-main {
-    font-size: 1rem;
-  }
-
-  .logo-title-sub {
-    font-size: 0.7rem;
-  }
-
-  .header-badge {
-    display: none; /* чтобы не съедало место сверху на узком экране */
-  }
-
-  main {
-    padding: 10px 8px 20px;
-    max-width: 100%;
-    margin: 0 auto 24px;
-    grid-template-columns: minmax(0, 1fr); /* одна колонка */
-    gap: 12px;
-  }
-
-  .card {
-    padding: 12px 10px;
-    border-radius: 14px;
-  }
-
-  .card-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-
-  .card-title {
-    font-size: 0.95rem;
-  }
-
-  .card-description {
-    font-size: 0.75rem;
-  }
-
-  .form-row {
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .form-group {
-    width: 100%;
-  }
-
-  button {
-    font-size: 0.8rem;
-    padding: 8px 12px;
-  }
-
-  .players-list {
-    max-height: 100px;
-  }
-
-  .filters-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .chart-container {
-    height: 220px;
-  }
-
-  /* таблицы: немного мельче шрифт и горизонтальный скролл при необходимости */
-  .table-wrapper {
-    overflow-x: auto;
-    overflow-y: hidden;
-  }
-
-  table {
-    font-size: 0.72rem;
-    min-width: 720px; /* чтобы столбцы не слепались, можно увеличить до 800 при желании */
-  }
-
-  th,
-  td {
-    padding: 4px 6px;
-  }
-}
-
-/* Совсем узкие экраны (окно сжали меньше айфона) */
-@media (max-width: 430px) {
-  .logo-title-sub {
-    display: none; /* оставим только основной заголовок */
-  }
-
-  table {
-    min-width: 680px;
-  }
-}
-
-
   </style>
 </head>
 <body>
@@ -581,13 +472,21 @@
         </div>
       </div>
       <p class="card-description">
-        Сначала добавь всех игроков Барсы в свою локальную базу. Потом будешь выбирать их из списка при внесении статистики.
+        Сначала добавь всех игроков Барсы в свою локальную базу, указав их роль. Потом будешь выбирать их из списка при внесении статистики.
       </p>
       <form id="playerForm">
         <div class="form-row">
           <div class="form-group">
             <label for="playerName">Имя игрока</label>
             <input type="text" id="playerName" placeholder="Например: Рафинья" required />
+          </div>
+          <div class="form-group" style="flex:0 0 150px;">
+            <label for="playerRole">Роль</label>
+            <select id="playerRole">
+              <option value="forward">Нападающий</option>
+              <option value="midfield">Полузащитник</option>
+              <option value="defender">Защитник</option>
+            </select>
           </div>
           <div class="form-group" style="flex:0 0 auto; align-self:flex-end;">
             <button type="submit">Добавить игрока</button>
@@ -682,11 +581,11 @@
       <div class="card-header">
         <div class="card-title">
           📅 Статистика по сезонам
-          <span class="card-pill">Матчи · Голы · Гол+Пас · Оценка</span>
+          <span class="card-pill">Матчи · Голы · Гол+Пас · Оценка · Импакт</span>
         </div>
       </div>
       <p class="card-description">
-        Таблица показывает статистику игроков по сезонам. Нажимай на заголовок столбца, чтобы сортировать.
+        Таблица показывает статистику игроков по сезонам. Импакт учитывает позицию (нап/пз/защ). Нажимай на заголовок столбца, чтобы сортировать.
       </p>
       <div class="filters-row">
         <div class="form-group" style="margin-bottom:0; max-width:160px;">
@@ -733,14 +632,14 @@
         </div>
       </div>
       <p class="card-description">
-        Выбери игрока и показатель (голы, передачи, матчи, гол+пас или оценка), чтобы увидеть изменение по сезонам.
+        Выбери игрока и показатель (включая импакт), чтобы увидеть изменение по сезонам.
       </p>
       <div class="filters-row">
         <div class="form-group" style="min-width:160px;">
           <label for="chartPlayer">Игрок</label>
           <select id="chartPlayer"></select>
         </div>
-        <div class="form-group" style="min-width:150px;">
+        <div class="form-group" style="min-width:170px;">
           <label for="chartMetric">Показатель</label>
           <select id="chartMetric">
             <option value="goals">Голы</option>
@@ -748,6 +647,7 @@
             <option value="ga">Гол + пас</option>
             <option value="matches">Матчи</option>
             <option value="rating">Оценка</option>
+            <option value="impact">Импакт (с учётом позиции)</option>
           </select>
         </div>
         <div class="form-group" style="flex:0 0 auto; align-self:flex-end;">
@@ -767,6 +667,33 @@
   const STORAGE_KEYS = {
     players: "fc26_players",
     stats: "fc26_stats",
+  };
+
+  // Роли игроков
+  const ROLE_TYPES = {
+    FORWARD: "forward",
+    MIDFIELD: "midfield",
+    DEFENDER: "defender",
+  };
+
+  const ROLE_LABELS_SHORT = {
+    forward: "НАП",
+    midfield: "ПЗ",
+    defender: "ЗАЩ",
+  };
+
+  const ROLE_LABELS_FULL = {
+    forward: "Нападающий",
+    midfield: "Полузащитник",
+    defender: "Защитник",
+  };
+
+  // Коэффициенты импакта по ролям (на основе твоей идеи:
+  // для защитников и полузащитников множители выше)
+  const ROLE_COEFFICIENTS = {
+    forward:   { goals: 1, assists: 1,   rating: 1   },
+    midfield:  { goals: 3, assists: 2,   rating: 1.2 },
+    defender:  { goals: 5, assists: 3,   rating: 1.5 },
   };
 
   // ----- Состояние в памяти -----
@@ -832,6 +759,12 @@
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
 
+  function getPlayerRole(player) {
+    if (!player || !player.role) return ROLE_TYPES.FORWARD;
+    if (!ROLE_COEFFICIENTS[player.role]) return ROLE_TYPES.FORWARD;
+    return player.role;
+  }
+
   // Диапазоны для цветовой индикации
   function computeMetricRanges(rows, metricKeys) {
     const ranges = {};
@@ -872,7 +805,7 @@
       players,
       stats,
       exportedAt: new Date().toISOString(),
-      version: "1.0",
+      version: "1.1",
     };
     const json = JSON.stringify(data, null, 2);
     const blob = new Blob([json], { type: "application/json" });
@@ -970,7 +903,6 @@
     renderSeasonTable();
     renderTotalTable();
 
-    // Обновим график, если он открыт по этому игроку
     const chartPlayerSelect = document.getElementById("chartPlayer");
     if (chartPlayerSelect && chartPlayerSelect.value === playerId) {
       showChart();
@@ -1038,7 +970,6 @@
       .slice()
       .sort((a, b) => a.name.localeCompare(b.name, "ru"))
       .forEach((p) => {
-        // Чип игрока
         const chip = document.createElement("div");
         chip.className = "player-chip";
         chip.dataset.playerId = p.id;
@@ -1046,6 +977,11 @@
         const initials = document.createElement("div");
         initials.className = "player-initials";
         initials.textContent = getInitials(p.name);
+
+        const roleSpan = document.createElement("span");
+        const roleKey = getPlayerRole(p);
+        roleSpan.className = "badge";
+        roleSpan.textContent = ROLE_LABELS_SHORT[roleKey] || "РОЛЬ";
 
         const span = document.createElement("span");
         span.textContent = p.name;
@@ -1063,11 +999,11 @@
         });
 
         chip.appendChild(initials);
+        chip.appendChild(roleSpan);
         chip.appendChild(span);
         chip.appendChild(removeBtn);
         playersList.appendChild(chip);
 
-        // В селекты
         const opt1 = document.createElement("option");
         opt1.value = p.id;
         opt1.textContent = p.name;
@@ -1107,10 +1043,16 @@
       const apg = matches > 0 ? assists / matches : 0;
       const gapg = matches > 0 ? ga / matches : 0;
 
+      const roleKey = getPlayerRole(player);
+      const coeff = ROLE_COEFFICIENTS[roleKey] || ROLE_COEFFICIENTS.forward;
+      const impact = goals * coeff.goals + assists * coeff.assists + rating * coeff.rating;
+
       return {
         season: s.season,
         playerId: s.playerId,
         playerName: player ? player.name : "Неизвестно",
+        roleKey,
+        roleLabel: ROLE_LABELS_SHORT[roleKey] || "",
         matches,
         goals,
         assists,
@@ -1119,6 +1061,7 @@
         assistsPerGame: apg,
         gaPerGame: gapg,
         rating,
+        impact,
       };
     });
 
@@ -1135,13 +1078,16 @@
       return;
     }
 
-    // Сортировка
     const { key, direction } = sortState.seasonTable;
     rows.sort((a, b) =>
-      compareValues(a[key], b[key], key === "playerName", direction)
+      compareValues(
+        a[key],
+        b[key],
+        key === "playerName" || key === "roleLabel",
+        direction
+      )
     );
 
-    // Диапазоны для цветовой индикации
     const metricKeys = [
       "matches",
       "goals",
@@ -1151,6 +1097,7 @@
       "assistsPerGame",
       "gaPerGame",
       "rating",
+      "impact",
     ];
     const ranges = computeMetricRanges(rows, metricKeys);
 
@@ -1161,6 +1108,7 @@
     const headers = [
       { key: "season", label: "Сезон", numeric: true, sortable: true, metric: false },
       { key: "playerName", label: "Игрок", numeric: false, sortable: true, metric: false },
+      { key: "roleLabel", label: "Роль", numeric: false, sortable: true, metric: false },
       { key: "matches", label: "Матчи", numeric: true, sortable: true, metric: true },
       { key: "goals", label: "Голы", numeric: true, sortable: true, metric: true },
       { key: "assists", label: "Пасы", numeric: true, sortable: true, metric: true },
@@ -1169,6 +1117,7 @@
       { key: "assistsPerGame", label: "Пасы / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
       { key: "gaPerGame", label: "Г+П / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
       { key: "rating", label: "Оценка", numeric: true, sortable: true, metric: true, format: "fixed2" },
+      { key: "impact", label: "Импакт", numeric: true, sortable: true, metric: true, format: "fixed2" },
       { key: "actions", label: "", numeric: false, sortable: false, metric: false },
     ];
 
@@ -1262,7 +1211,6 @@
       return;
     }
 
-    // Суммируем по игрокам
     const totals = {};
     const playerMap = getPlayerMap();
 
@@ -1306,7 +1254,6 @@
       compareValues(a[key], b[key], key === "playerName", direction)
     );
 
-    // Диапазоны для цветовой индикации
     const metricKeys = [
       "matches",
       "goals",
@@ -1433,7 +1380,6 @@
       return;
     }
 
-    // Группируем по сезонам
     const seasonsMap = {};
     playerStats.forEach((s) => {
       const season = s.season;
@@ -1481,6 +1427,12 @@
           return m.ga;
         case "rating":
           return m.ratingCount ? m.ratingSum / m.ratingCount : 0;
+        case "impact": {
+          const roleKey = getPlayerRole(player);
+          const coeff = ROLE_COEFFICIENTS[roleKey] || ROLE_COEFFICIENTS.forward;
+          const avgRating = m.ratingCount ? m.ratingSum / m.ratingCount : 0;
+          return m.goals * coeff.goals + m.assists * coeff.assists + avgRating * coeff.rating;
+        }
         default:
           return 0;
       }
@@ -1492,6 +1444,7 @@
       ga: "Гол + пас",
       matches: "Матчи",
       rating: "Оценка",
+      impact: "Импакт (с учётом позиции)",
     };
 
     const ctx = document.getElementById("playerChartCanvas").getContext("2d");
@@ -1557,7 +1510,10 @@
     playerForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const nameInput = document.getElementById("playerName");
+      const roleSelect = document.getElementById("playerRole");
       const name = nameInput.value.trim();
+      const role = roleSelect.value || ROLE_TYPES.FORWARD;
+
       if (!name) {
         playerStatus.textContent = "Имя игрока не может быть пустым.";
         playerStatus.className = "status error";
@@ -1572,11 +1528,12 @@
         playerStatus.className = "status error";
         return;
       }
-      const newPlayer = { id: createId(), name };
+      const newPlayer = { id: createId(), name, role };
       players.push(newPlayer);
       savePlayers();
       renderPlayers();
       nameInput.value = "";
+      roleSelect.value = ROLE_TYPES.FORWARD;
       playerStatus.textContent = "Игрок добавлен в базу.";
       playerStatus.className = "status success";
     });
@@ -1640,7 +1597,6 @@
       importFileInput.addEventListener("change", (e) => {
         const file = e.target.files && e.target.files[0];
         importDataFromFile(file);
-        // сбрасываем input, чтобы при повторном выборе того же файла событие сработало снова
         e.target.value = "";
       });
     }
