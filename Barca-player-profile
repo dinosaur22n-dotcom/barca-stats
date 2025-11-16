@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>BARÇA PLAYER PROFILE · EA FC 26</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --barca-blue: #004d98;
+      --barca-claret: #a50044;
+      --barca-gold: #fdb913;
+      --barca-bg: #020814;
+      --card-bg: rgba(4, 17, 40, 0.95);
+      --text-main: #f5f5f5;
+      --text-muted: #a0aec0;
+      --border-soft: rgba(255, 255, 255, 0.12);
+      --input-bg: rgba(3, 22, 46, 0.95);
+      --bronze: #b45309;
+      --silver: #9ca3af;
+      --gold: #facc15;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1a3358 0, var(--barca-bg) 45%, #01030a 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(90deg, var(--barca-claret), var(--barca-blue));
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-symbol {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--barca-gold), #ffeaa7);
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-symbol::before,
+    .logo-symbol::after {
+      content: "";
+      position: absolute;
+      inset: 5px;
+      border-radius: 9px;
+      border: 2px solid rgba(0, 0, 0, 0.7);
+    }
+
+    .logo-title-main {
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .logo-title-sub {
+      font-size: 0.78rem;
+      opacity: 0.9;
+    }
+
+    .header-badge {
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      background: rgba(0, 0, 0, 0.25);
+      font-size: 0.78rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    main {
+      padding: 18px;
+      max-width: 1200px;
+      margin: 0 auto 40px;
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 960px) {
+      main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 16px 16px 14px;
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(20px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-pill {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.85;
+    }
+
+    .card-description {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .form-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.8rem;
+    }
+
+    label {
+      color: var(--text-muted);
+      font-size: 0.76rem;
+    }
+
+    input[type="file"],
+    select {
+      background: var(--input-bg);
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      padding: 7px 10px;
+      color: var(--text-main);
+      font-size: 0.82rem;
+      outline: none;
+    }
+
+    select:focus,
+    input[type="file"]:focus {
+      border-color: var(--barca-gold);
+      box-shadow: 0 0 0 1px rgba(253, 185, 19, 0.5);
+      background: rgba(4, 30, 72, 0.95);
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, var(--barca-gold), #ffe27a);
+      color: #3b2800;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.8);
+      filter: brightness(1.05);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 5px 14px rgba(0, 0, 0, 0.75);
+      filter: brightness(0.96);
+    }
+
+    .status {
+      margin-top: 4px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .status.error {
+      color: #fb7185;
+    }
+
+    .status.success {
+      color: #4ade80;
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .profile-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .profile-role {
+      font-size: 0.8rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(0,0,0,0.3);
+      color: var(--text-muted);
+    }
+
+    .totals-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 6px;
+      font-size: 0.8rem;
+    }
+
+    .total-pill {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      background: rgba(0,0,0,0.35);
+    }
+
+    .chart-container {
+      margin-top: 10px;
+      border-radius: 14px;
+      border: 1px solid var(--border-soft);
+      background: rgba(2,11,26,0.9);
+      padding: 8px 10px 10px;
+      height: 260px;
+    }
+
+    .chart-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+      font-size: 0.8rem;
+    }
+
+    .chart-inner {
+      position: relative;
+      height: 210px;
+    }
+
+    .achievements-section {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: minmax(0,1fr);
+      gap: 10px;
+    }
+
+    .achievements-group-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .achievement-list {
+      display: grid;
+      gap: 4px;
+      font-size: 0.78rem;
+    }
+
+    .achievement-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 6px;
+      border-radius: 10px;
+      background: rgba(3, 16, 40, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .achievement-label {
+      color: var(--text-muted);
+    }
+
+    .achievement-count {
+      font-weight: 600;
+    }
+
+    .achievement-badge {
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+
+    .badge-bronze {
+      border-color: var(--bronze);
+      color: #fed7aa;
+    }
+
+    .badge-silver {
+      border-color: var(--silver);
+      color: #e5e7eb;
+    }
+
+    .badge-gold {
+      border-color: var(--gold);
+      color: #fef9c3;
+    }
+
+    .muted {
+      opacity: 0.45;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-symbol"></div>
+    <div>
+      <div class="logo-title-main">BARÇA PLAYER PROFILE</div>
+      <div class="logo-title-sub">EA FC 26 — импорт из основной базы</div>
+    </div>
+  </div>
+  <div class="header-badge">
+    <span>📥</span>
+    <span>Импорт из barca_stats_backup.json</span>
+  </div>
+</header>
+
+<main>
+  <!-- Левая колонка: импорт и выбор -->
+  <section>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          💾 Данные
+          <span class="card-pill">Импорт из основной базы</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Выбери файл <code>barca_stats_backup.json</code>, который экспортирует твоё основное приложение со статистикой.
+      </p>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="importFile">Файл бэкапа</label>
+          <input type="file" id="importFile" accept="application/json,.json" />
+        </div>
+      </div>
+      <div class="status" id="importStatus">Данные ещё не загружены.</div>
+      <p class="hint">
+        После импорта выбери игрока справа — появится график, суммарные цифры и ачивки.
+      </p>
+    </div>
+
+    <div class="card" style="margin-top:12px;">
+      <div class="card-header">
+        <div class="card-title">
+          👤 Игрок
+          <span class="card-pill">Выбор профиля</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Игроки подтягиваются из импортированных данных. Выбери того, чей профиль хочешь посмотреть.
+      </p>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="playerSelect">Игрок</label>
+          <select id="playerSelect">
+            <option value="">Сначала импортируй данные</option>
+          </select>
+        </div>
+      </div>
+      <div class="status" id="playerStatus"></div>
+    </div>
+  </section>
+
+  <!-- Правая колонка: профиль игрока -->
+  <section>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          📁 Профиль игрока
+          <span class="card-pill">График · Сумма · Ачивки</span>
+        </div>
+      </div>
+      <p class="card-description" id="profileIntro">
+        Импортируй данные и выбери игрока, чтобы увидеть его историю в клубе.
+      </p>
+
+      <div id="profileContent" style="display:none;">
+        <div class="profile-header">
+          <div>
+            <div class="profile-name" id="profileName"></div>
+            <div class="profile-role" id="profileRole"></div>
+          </div>
+        </div>
+
+        <div class="totals-row">
+          <div class="total-pill" id="totalMatches">Матчи: 0</div>
+          <div class="total-pill" id="totalGoals">Голы: 0</div>
+          <div class="total-pill" id="totalAssists">Пасы: 0</div>
+          <div class="total-pill" id="totalGA">Г+П: 0</div>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-bar">
+            <span>График по сезонам</span>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <span style="font-size:0.75rem; color:var(--text-muted);">Метрика:</span>
+              <select id="metricSelect" style="min-width:150px;">
+                <option value="goals">Голы</option>
+                <option value="assists">Голевые передачи</option>
+                <option value="ga">Гол + пас</option>
+                <option value="matches">Матчи</option>
+                <option value="rating">Рейтинг</option>
+                <option value="impactPg">Импакт / игру</option>
+                <option value="impactSeason">Импакт за сезон</option>
+              </select>
+            </div>
+          </div>
+          <div class="chart-inner">
+            <canvas id="playerChart"></canvas>
+          </div>
+        </div>
+
+        <div class="achievements-section">
+          <div>
+            <div class="achievements-group-title">🏅 Ачивки по сезонам</div>
+            <div class="achievement-list" id="seasonAchievements"></div>
+          </div>
+          <div>
+            <div class="achievements-group-title">📜 Карьерные ачивки</div>
+            <div class="achievement-list" id="careerAchievements"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // ----- Константы и структуры -----
+  const ROLE_TYPES = {
+    FORWARD: "forward",
+    MIDFIELD: "midfield",
+    DEFENDER: "defender",
+  };
+
+  const ROLE_LABELS_FULL = {
+    forward: "Нападающий",
+    midfield: "Полузащитник",
+    defender: "Защитник",
+  };
+
+  const ROLE_COEFFICIENTS = {
+    forward:   { goals: 1, assists: 1,   rating: 1   },
+    midfield:  { goals: 3, assists: 2,   rating: 1.2 },
+    defender:  { goals: 4, assists: 3,   rating: 1.5 },
+  };
+
+  let players = [];
+  let stats = [];
+
+  // агрегированные данные
+  let seasonRows = [];             // [{season, playerId, matches, goals, assists, rating, ga, gpg, apg, impactPg, impactSeason}]
+  let perPlayerSeason = new Map(); // playerId -> rows[]
+  let playerTotals = new Map();    // playerId -> {matches, goals, assists, ga}
+  let seasonAwards = new Map();    // season -> { topGoals:Set, topAssists:Set, topGA:Set, topImpactPg:Set, topImpactSeason:Set }
+
+  let chart = null;
+
+  // ----- Вспомогательные -----
+  function numberOrZero(v) {
+    const n = parseFloat(v);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function getPlayerRole(player) {
+    if (!player || !player.role) return ROLE_TYPES.FORWARD;
+    if (!ROLE_COEFFICIENTS[player.role]) return ROLE_TYPES.FORWARD;
+    return player.role;
+  }
+
+  function getLastName(name) {
+    const parts = (name || "").trim().split(" ").filter(Boolean);
+    if (!parts.length) return name || "";
+    return parts[parts.length - 1];
+  }
+
+  // ----- Импорт -----
+  const importFileInput = document.getElementById("importFile");
+  const importStatusEl = document.getElementById("importStatus");
+  const playerSelectEl = document.getElementById("playerSelect");
+  const playerStatusEl = document.getElementById("playerStatus");
+
+  importFileInput.addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!data || !Array.isArray(data.players) || !Array.isArray(data.stats)) {
+          importStatusEl.textContent = "❌ Некорректный файл: нет players или stats.";
+          importStatusEl.className = "status error";
+          return;
+        }
+        players = data.players;
+        stats = data.stats;
+        prepareAggregates();
+        populatePlayerSelect();
+        importStatusEl.textContent = "✅ Данные импортированы. Выбери игрока слева.";
+        importStatusEl.className = "status success";
+      } catch (err) {
+        console.error(err);
+        importStatusEl.textContent = "❌ Ошибка при чтении JSON-файла.";
+        importStatusEl.className = "status error";
+      }
+    };
+    reader.readAsText(file, "utf-8");
+  });
+
+  // ----- Подготовка данных -----
+  function prepareAggregates() {
+    seasonRows = [];
+    perPlayerSeason.clear();
+    playerTotals.clear();
+    seasonAwards.clear();
+
+    if (!players.length || !stats.length) return;
+
+    // 1) агрегируем по (season, playerId)
+    const grouped = new Map();
+    stats.forEach((s) => {
+      const key = `${s.season}__${s.playerId}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          season: s.season,
+          playerId: s.playerId,
+          matches: 0,
+          goals: 0,
+          assists: 0,
+          ratingSum: 0,
+          ratingCount: 0,
+        });
+      }
+      const g = grouped.get(key);
+      g.matches += numberOrZero(s.matches);
+      g.goals += numberOrZero(s.goals);
+      g.assists += numberOrZero(s.assists);
+      const r = numberOrZero(s.rating);
+      if (r > 0) {
+        g.ratingSum += r;
+        g.ratingCount += 1;
+      }
+    });
+
+    const groupedArray = Array.from(grouped.values());
+
+    // 2) считаем maxMatches по каждому сезону
+    const maxMatchesBySeason = {};
+    groupedArray.forEach((g) => {
+      const s = g.season;
+      if (!maxMatchesBySeason[s] || g.matches > maxMatchesBySeason[s]) {
+        maxMatchesBySeason[s] = g.matches;
+      }
+    });
+
+    // 3) строим seasonRows, перезаполняем perPlayerSeason и playerTotals
+    const playerMap = new Map(players.map(p => [p.id, p]));
+
+    groupedArray.forEach((g) => {
+      const player = playerMap.get(g.playerId);
+      const roleKey = getPlayerRole(player);
+      const coeff = ROLE_COEFFICIENTS[roleKey] || ROLE_COEFFICIENTS.forward;
+
+      const matches = g.matches;
+      const goals = g.goals;
+      const assists = g.assists;
+      const ga = goals + assists;
+      const ratingAvg = g.ratingCount ? g.ratingSum / g.ratingCount : 0;
+      const gpg = matches > 0 ? goals / matches : 0;
+      const apg = matches > 0 ? assists / matches : 0;
+
+      const impactPg = gpg * coeff.goals + apg * coeff.assists + ratingAvg * coeff.rating;
+      const maxMatches = maxMatchesBySeason[g.season] || 1;
+      const factor = 0.5 + 0.5 * (matches / maxMatches);
+      const impactSeason = impactPg * factor;
+
+      const row = {
+        season: g.season,
+        playerId: g.playerId,
+        matches,
+        goals,
+        assists,
+        ga,
+        rating: ratingAvg,
+        gpg,
+        apg,
+        impactPg,
+        impactSeason,
+      };
+      seasonRows.push(row);
+
+      if (!perPlayerSeason.has(g.playerId)) perPlayerSeason.set(g.playerId, []);
+      perPlayerSeason.get(g.playerId).push(row);
+
+      if (!playerTotals.has(g.playerId)) {
+        playerTotals.set(g.playerId, { matches: 0, goals: 0, assists: 0, ga: 0 });
+      }
+      const tot = playerTotals.get(g.playerId);
+      tot.matches += matches;
+      tot.goals += goals;
+      tot.assists += assists;
+      tot.ga += ga;
+    });
+
+    // 4) считаем сезонные награды (лучший бомбардир и т.п.)
+    const seasons = [...new Set(seasonRows.map(r => r.season))];
+    seasons.forEach((season) => {
+      const rowsForSeason = seasonRows.filter(r => r.season === season);
+      const awards = {
+        topGoals: new Set(),
+        topAssists: new Set(),
+        topGA: new Set(),
+        topImpactPg: new Set(),
+        topImpactSeason: new Set(),
+      };
+
+      function markWinners(key, set) {
+        let max = -Infinity;
+        rowsForSeason.forEach((r) => {
+          const v = Number(r[key]) || 0;
+          if (v > max) max = v;
+        });
+        if (max <= 0) return; // если всё нули — никого
+        rowsForSeason.forEach((r) => {
+          const v = Number(r[key]) || 0;
+          if (v === max) set.add(r.playerId);
+        });
+      }
+
+      markWinners("goals", awards.topGoals);
+      markWinners("assists", awards.topAssists);
+      markWinners("ga", awards.topGA);
+      markWinners("impactPg", awards.topImpactPg);
+      markWinners("impactSeason", awards.topImpactSeason);
+
+      seasonAwards.set(season, awards);
+    });
+  }
+
+  // ----- UI: выбор игрока -----
+  function populatePlayerSelect() {
+    playerSelectEl.innerHTML = "";
+    if (!players.length) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "Нет игроков";
+      playerSelectEl.appendChild(opt);
+      return;
+    }
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Выбери игрока";
+    playerSelectEl.appendChild(placeholder);
+
+    players
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name, "ru"))
+      .forEach((p) => {
+        const opt = document.createElement("option");
+        opt.value = p.id;
+        opt.textContent = p.name;
+        playerSelectEl.appendChild(opt);
+      });
+
+    playerStatusEl.textContent = "Выбери игрока для просмотра профиля.";
+  }
+
+  playerSelectEl.addEventListener("change", () => {
+    const playerId = playerSelectEl.value;
+    if (!playerId) {
+      playerStatusEl.textContent = "Игрок не выбран.";
+      hideProfile();
+      return;
+    }
+    renderProfile(playerId);
+  });
+
+  const profileIntroEl = document.getElementById("profileIntro");
+  const profileContentEl = document.getElementById("profileContent");
+  const profileNameEl = document.getElementById("profileName");
+  const profileRoleEl = document.getElementById("profileRole");
+  const totalMatchesEl = document.getElementById("totalMatches");
+  const totalGoalsEl = document.getElementById("totalGoals");
+  const totalAssistsEl = document.getElementById("totalAssists");
+  const totalGAEl = document.getElementById("totalGA");
+  const metricSelectEl = document.getElementById("metricSelect");
+  const seasonAchievementsEl = document.getElementById("seasonAchievements");
+  const careerAchievementsEl = document.getElementById("careerAchievements");
+  const chartCanvasEl = document.getElementById("playerChart");
+
+  function hideProfile() {
+    profileContentEl.style.display = "none";
+    profileIntroEl.textContent = "Импортируй данные и выбери игрока, чтобы увидеть его историю в клубе.";
+    if (chart) {
+      chart.destroy();
+      chart = null;
+    }
+  }
+
+  function renderProfile(playerId) {
+    const player = players.find(p => p.id === playerId);
+    if (!player) {
+      hideProfile();
+      return;
+    }
+
+    profileContentEl.style.display = "block";
+    profileIntroEl.textContent = "";
+    profileNameEl.textContent = player.name;
+    const roleKey = getPlayerRole(player);
+    profileRoleEl.textContent = ROLE_LABELS_FULL[roleKey] || "Игрок";
+
+    const totals = playerTotals.get(playerId) || { matches: 0, goals: 0, assists: 0, ga: 0 };
+    totalMatchesEl.textContent = `Матчи: ${totals.matches}`;
+    totalGoalsEl.textContent = `Голы: ${totals.goals}`;
+    totalAssistsEl.textContent = `Пасы: ${totals.assists}`;
+    totalGAEl.textContent = `Г+П: ${totals.ga}`;
+
+    renderChart(playerId, metricSelectEl.value);
+    renderSeasonAchievements(playerId);
+    renderCareerAchievements(playerId);
+
+    playerStatusEl.textContent = "";
+  }
+
+  metricSelectEl.addEventListener("change", () => {
+    const playerId = playerSelectEl.value;
+    if (!playerId) return;
+    renderChart(playerId, metricSelectEl.value);
+  });
+
+  // ----- График -----
+  function renderChart(playerId, metric) {
+    const rows = (perPlayerSeason.get(playerId) || []).slice().sort((a, b) => a.season - b.season);
+    const labels = rows.map(r => "Сезон " + r.season);
+    const data = rows.map(r => {
+      switch (metric) {
+        case "goals": return r.goals;
+        case "assists": return r.assists;
+        case "ga": return r.ga;
+        case "matches": return r.matches;
+        case "rating": return r.rating || 0;
+        case "impactPg": return r.impactPg || 0;
+        case "impactSeason": return r.impactSeason || 0;
+        default: return 0;
+      }
+    });
+
+    const metricNames = {
+      goals: "Голы",
+      assists: "Голевые передачи",
+      ga: "Гол + пас",
+      matches: "Матчи",
+      rating: "Рейтинг",
+      impactPg: "Импакт / игру",
+      impactSeason: "Импакт за сезон",
+    };
+
+    if (chart) {
+      chart.destroy();
+      chart = null;
+    }
+
+    const ctx = chartCanvasEl.getContext("2d");
+    chart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label: metricNames[metric],
+          data,
+          tension: 0.25,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            ticks: { color: "#e5e7eb", font: { size: 11 } },
+            grid: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: "#e5e7eb", font: { size: 11 } },
+            grid: { color: "rgba(148, 163, 184, 0.3)" }
+          }
+        },
+        plugins: {
+          legend: {
+            labels: { color: "#e5e7eb", font: { size: 11 } }
+          }
+        }
+      }
+    });
+  }
+
+  // ----- Ачивки по сезонам -----
+  function renderSeasonAchievements(playerId) {
+    seasonAchievementsEl.innerHTML = "";
+
+    const rows = perPlayerSeason.get(playerId) || [];
+    if (!rows.length) {
+      const div = document.createElement("div");
+      div.className = "achievement-item muted";
+      div.textContent = "Нет сыгранных сезонов.";
+      seasonAchievementsEl.appendChild(div);
+      return;
+    }
+
+    let c30Goals = 0;
+    let c20Assists = 0;
+    let cRating8 = 0;
+    let cImpPg9 = 0;
+    let cImpSeason9 = 0;
+    let cTopGoals = 0;
+    let cTopAssists = 0;
+    let cTopGA = 0;
+    let cTopImpPg = 0;
+    let cTopImpSeason = 0;
+
+    rows.forEach((r) => {
+      if (r.goals >= 30) c30Goals++;
+      if (r.assists >= 20) c20Assists++;
+      if (r.rating >= 8.0) cRating8++;
+      if (r.impactPg > 9) cImpPg9++;
+      if (r.impactSeason > 9) cImpSeason9++;
+
+      const awards = seasonAwards.get(r.season);
+      if (awards) {
+        if (awards.topGoals.has(playerId)) cTopGoals++;
+        if (awards.topAssists.has(playerId)) cTopAssists++;
+        if (awards.topGA.has(playerId)) cTopGA++;
+        if (awards.topImpactPg.has(playerId)) cTopImpPg++;
+        if (awards.topImpactSeason.has(playerId)) cTopImpSeason++;
+      }
+    });
+
+    function addSeasonAchievement(label, count) {
+      const item = document.createElement("div");
+      item.className = "achievement-item" + (count === 0 ? " muted" : "");
+      const lbl = document.createElement("div");
+      lbl.className = "achievement-label";
+      lbl.textContent = label;
+      const cnt = document.createElement("div");
+      cnt.className = "achievement-count";
+      cnt.textContent = count > 0 ? `x${count}` : "x0";
+      item.appendChild(lbl);
+      item.appendChild(cnt);
+      seasonAchievementsEl.appendChild(item);
+    }
+
+    addSeasonAchievement("30+ голов за сезон", c30Goals);
+    addSeasonAchievement("20+ голевых передач за сезон", c20Assists);
+    addSeasonAchievement("Рейтинг 8.0+ за сезон", cRating8);
+    addSeasonAchievement(">9 импакт / игру за сезон", cImpPg9);
+    addSeasonAchievement(">9 импакт за сезон", cImpSeason9);
+    addSeasonAchievement("Лучший бомбардир сезона", cTopGoals);
+    addSeasonAchievement("Лучший ассистент сезона", cTopAssists);
+    addSeasonAchievement("Лучший по Г+П сезона", cTopGA);
+    addSeasonAchievement("Лучший по импакту / игру в сезоне", cTopImpPg);
+    addSeasonAchievement("Лучший по импакту за сезон", cTopImpSeason);
+  }
+
+  // ----- Карьерные ачивки -----
+  function renderCareerAchievements(playerId) {
+    careerAchievementsEl.innerHTML = "";
+
+    const totals = playerTotals.get(playerId) || { matches: 0, goals: 0, assists: 0, ga: 0 };
+    const rows = perPlayerSeason.get(playerId) || [];
+
+    // Сезонные победы (для “n-кратный лучший ...”)
+    let cTopGoals = 0;
+    let cTopAssists = 0;
+    let cTopGA = 0;
+    let cTopImpPg = 0;
+    let cTopImpSeason = 0;
+    rows.forEach((r) => {
+      const awards = seasonAwards.get(r.season);
+      if (!awards) return;
+      if (awards.topGoals.has(playerId)) cTopGoals++;
+      if (awards.topAssists.has(playerId)) cTopAssists++;
+      if (awards.topGA.has(playerId)) cTopGA++;
+      if (awards.topImpactPg.has(playerId)) cTopImpPg++;
+      if (awards.topImpactSeason.has(playerId)) cTopImpSeason++;
+    });
+
+    function createBadge(text, level) {
+      const span = document.createElement("span");
+      span.className = "achievement-badge " + (
+        level === "gold" ? "badge-gold" :
+        level === "silver" ? "badge-silver" :
+        "badge-bronze"
+      );
+      span.textContent = text;
+      return span;
+    }
+
+    function addCareerItem(label, badgeText, level, show) {
+      const item = document.createElement("div");
+      item.className = "achievement-item" + (!show ? " muted" : "");
+      const lbl = document.createElement("div");
+      lbl.className = "achievement-label";
+      lbl.textContent = label;
+      const right = document.createElement("div");
+      if (show) {
+        right.appendChild(createBadge(badgeText, level));
+      } else {
+        right.textContent = "—";
+      }
+      item.appendChild(lbl);
+      item.appendChild(right);
+      careerAchievementsEl.appendChild(item);
+    }
+
+    // 1–5) матчи: 100/200/300/400/500
+    const matchThresholds = [500, 400, 300, 200, 100];
+    let matchAch = null;
+    matchThresholds.some((thr) => {
+      if (totals.matches >= thr) {
+        matchAch = thr;
+        return true;
+      }
+      return false;
+    });
+    if (matchAch) {
+      let level = "bronze";
+      if (matchAch >= 300 && matchAch < 500) level = "silver";
+      if (matchAch >= 500) level = "gold";
+      addCareerItem("Матчи за клуб", `${matchAch} матчей`, level, true);
+    } else {
+      addCareerItem("Матчи за клуб", "", "bronze", false);
+    }
+
+    // 6) голы: 50,100,150,200,250,300
+    const goalThresholds = [300, 250, 200, 150, 100, 50];
+    let goalAch = null;
+    goalThresholds.some((thr) => {
+      if (totals.goals >= thr) {
+        goalAch = thr;
+        return true;
+      }
+      return false;
+    });
+    if (goalAch) {
+      let level = "bronze";
+      if (goalAch >= 150 && goalAch < 250) level = "silver";
+      if (goalAch >= 250) level = "gold";
+      addCareerItem("Голы за клуб", `${goalAch}+ голов`, level, true);
+    } else {
+      addCareerItem("Голы за клуб", "", "bronze", false);
+    }
+
+    // 7) ассисты: 30,60,90,120,150,180
+    const assistThresholds = [180, 150, 120, 90, 60, 30];
+    let assistAch = null;
+    assistThresholds.some((thr) => {
+      if (totals.assists >= thr) {
+        assistAch = thr;
+        return true;
+      }
+      return false;
+    });
+    if (assistAch) {
+      let level = "bronze";
+      if (assistAch >= 90 && assistAch < 150) level = "silver";
+      if (assistAch >= 150) level = "gold";
+      addCareerItem("Голевые передачи за клуб", `${assistAch}+ передач`, level, true);
+    } else {
+      addCareerItem("Голевые передачи за клуб", "", "bronze", false);
+    }
+
+    // 8–12) n-кратный лучший ...
+    function multiBestItem(label, count) {
+      if (count < 2) {
+        addCareerItem(label, "", "bronze", false);
+        return;
+      }
+      let level = "bronze";
+      if (count >= 3 && count <= 4) level = "silver";
+      if (count >= 5) level = "gold";
+      addCareerItem(label, `${count}-кратный`, level, true);
+    }
+
+    multiBestItem("Лучший бомбардир сезона (карьера)", cTopGoals);
+    multiBestItem("Лучший ассистент сезона (карьера)", cTopAssists);
+    multiBestItem("Лучший по Г+П сезона (карьера)", cTopGA);
+    multiBestItem("Лучший по импакту / игру сезона (карьера)", cTopImpPg);
+    multiBestItem("Лучший по импакту за сезон (карьера)", cTopImpSeason);
+  }
+</script>
+</body>
+</html>
