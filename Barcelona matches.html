@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Barça Match Hub · EA FC 26</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --barca-blue: #004d98;
+      --barca-claret: #a50044;
+      --barca-gold: #fdb913;
+      --barca-bg: #020814;
+      --card-bg: rgba(4, 17, 40, 0.95);
+      --text-main: #f5f5f5;
+      --text-muted: #a0aec0;
+      --border-soft: rgba(255, 255, 255, 0.08);
+      --input-bg: rgba(3, 22, 46, 0.95);
+      --win: #16a34a;
+      --draw: #9ca3af;
+      --loss: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1a3358 0, var(--barca-bg) 45%, #01030a 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(90deg, var(--barca-claret), var(--barca-blue));
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-symbol {
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--barca-gold), #ffeaa7);
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-symbol::before,
+    .logo-symbol::after {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border-radius: 9px;
+      border: 2px solid rgba(0, 0, 0, 0.7);
+    }
+
+    .logo-title-main {
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .logo-title-sub {
+      font-size: 0.75rem;
+      opacity: 0.9;
+    }
+
+    .header-badge {
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      background: rgba(0, 0, 0, 0.2);
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    main {
+      padding: 16px;
+      max-width: 1200px;
+      margin: 0 auto 32px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.9fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 960px) {
+      main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 14px 14px 12px;
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(18px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-pill {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.85;
+    }
+
+    .card-description {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .form-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      font-size: 0.78rem;
+    }
+
+    label {
+      color: var(--text-muted);
+      font-size: 0.73rem;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      background: var(--input-bg);
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      padding: 7px 11px;
+      color: var(--text-main);
+      font-size: 0.8rem;
+      outline: none;
+      transition: border 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+      border-color: var(--barca-gold);
+      box-shadow: 0 0 0 1px rgba(253, 185, 19, 0.5);
+      background: rgba(4, 30, 72, 0.95);
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] { -moz-appearance: textfield; }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 7px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, var(--barca-gold), #ffe27a);
+      color: #3b2800;
+      box-shadow: 0 7px 18px rgba(0, 0, 0, 0.7);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 9px 22px rgba(0, 0, 0, 0.8);
+      filter: brightness(1.05);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 5px 14px rgba(0, 0, 0, 0.75);
+      filter: brightness(0.96);
+    }
+
+    .button-secondary {
+      background: transparent;
+      border: 1px solid var(--border-soft);
+      color: var(--text-main);
+      box-shadow: none;
+    }
+
+    .button-secondary:hover {
+      border-color: rgba(255, 255, 255, 0.4);
+      background: rgba(13, 30, 63, 0.9);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+    }
+
+    .status {
+      margin-top: 4px;
+      font-size: 0.75rem;
+    }
+    .status.success { color: #22c55e; }
+    .status.error   { color: #f97373; }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .chip {
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      padding: 2px 8px;
+      font-size: 0.7rem;
+      background: rgba(0, 0, 0, 0.35);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .chip-name {
+      max-width: 120px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chip button {
+      padding: 0 5px;
+      font-size: 0.7rem;
+      box-shadow: none;
+    }
+
+    .soft-divider {
+      height: 1px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.24), transparent 65%);
+      opacity: 0.5;
+      margin: 6px 0;
+    }
+
+    .table-wrapper {
+      border-radius: 14px;
+      border: 1px solid var(--border-soft);
+      margin-top: 6px;
+      background: rgba(2, 11, 26, 0.95);
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+
+    table {
+      width: 100%;
+      min-width: 750px;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+    }
+
+    thead {
+      background: linear-gradient(90deg, rgba(165, 0, 68, 0.9), rgba(0, 77, 152, 0.9));
+    }
+
+    th, td {
+      padding: 6px 8px;
+      text-align: right;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      white-space: nowrap;
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(4, 16, 35, 0.92);
+    }
+
+    tbody tr:nth-child(odd) {
+      background: rgba(5, 22, 48, 0.92);
+    }
+
+    tbody tr:hover {
+      background: rgba(12, 39, 82, 0.96);
+    }
+
+    .empty-state {
+      padding: 10px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .filters-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 4px;
+      font-size: 0.76rem;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(0, 0, 0, 0.35);
+      color: var(--text-muted);
+    }
+
+    .result-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .result-win {
+      background: rgba(22, 163, 74, 0.15);
+      color: var(--win);
+      border: 1px solid rgba(22, 163, 74, 0.6);
+    }
+
+    .result-draw {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--draw);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .result-loss {
+      background: rgba(248, 113, 113, 0.15);
+      color: var(--loss);
+      border: 1px solid rgba(248, 113, 113, 0.6);
+    }
+
+    .stat-tag {
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .summary-line {
+      font-size: 0.78rem;
+      margin-top: 6px;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 600px) {
+      header {
+        padding: 10px 12px;
+      }
+      .logo-title-main { font-size: 1rem; }
+      .logo-title-sub { font-size: 0.68rem; }
+      .header-badge { display: none; }
+
+      main {
+        padding: 10px 8px 20px;
+        max-width: 100%;
+        margin: 0 auto 24px;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+      }
+
+      .card {
+        padding: 12px 10px;
+        border-radius: 14px;
+      }
+
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .form-row {
+        flex-direction: column;
+      }
+
+      .filters-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      table {
+        font-size: 0.7rem;
+        min-width: 680px;
+      }
+
+      th, td {
+        padding: 4px 6px;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-symbol"></div>
+    <div>
+      <div class="logo-title-main">BARÇA MATCH HUB</div>
+      <div class="logo-title-sub">EA FC 26 — матчи, турниры, соперники</div>
+    </div>
+  </div>
+  <div class="header-badge">
+    <span>🔒</span>
+    <span>Данные матчей в localStorage</span>
+  </div>
+</header>
+
+<main>
+  <!-- Левая колонка: справочники + ввод матча -->
+  <section class="section-grid">
+    <!-- Турниры -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          🏆 Турниры
+          <span class="card-pill">Справочник</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Добавь турниры (Ла Лига, ЛЧ, Кубок и т.п.), чтобы потом выбирать их при внесении матча.
+      </p>
+      <form id="tournamentForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="tournamentName">Название турнира</label>
+            <input type="text" id="tournamentName" placeholder="Например: Ла Лига" />
+          </div>
+          <div class="form-group" style="flex:0 0 auto; align-self:flex-end;">
+            <button type="submit">Добавить</button>
+          </div>
+        </div>
+      </form>
+      <div class="soft-divider"></div>
+      <div class="chips" id="tournamentChips"></div>
+      <div class="status" id="tournamentStatus"></div>
+    </div>
+
+    <!-- Соперники -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          🤝 Соперники
+          <span class="card-pill">Справочник</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Здесь список команд-соперников. Потом сможешь смотреть историю встреч с каждой из них.
+      </p>
+      <form id="opponentForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="opponentName">Название соперника</label>
+            <input type="text" id="opponentName" placeholder="Например: Реал Мадрид" />
+          </div>
+          <div class="form-group" style="flex:0 0 auto; align-self:flex-end;">
+            <button type="submit">Добавить</button>
+          </div>
+        </div>
+      </form>
+      <div class="soft-divider"></div>
+      <div class="chips" id="opponentChips"></div>
+      <div class="status" id="opponentStatus"></div>
+    </div>
+
+    <!-- Ввод матча -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          ⚽ Матч
+          <span class="card-pill">Ввод результата</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Внеси сыгранный матч: сезон, турнир, соперник и счёт. Результат (Победа/Ничья/Поражение) определится автоматически.
+      </p>
+      <form id="matchForm">
+        <div class="form-row">
+          <div class="form-group" style="flex:0 0 90px;">
+            <label for="matchSeason">Сезон</label>
+            <select id="matchSeason"></select>
+          </div>
+          <div class="form-group">
+            <label for="matchTournament">Турнир</label>
+            <select id="matchTournament"></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="matchOpponent">Соперник</label>
+            <select id="matchOpponent"></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="goalsFor">Забитые (Барса)</label>
+            <input type="number" id="goalsFor" min="0" step="1" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label for="goalsAgainst">Пропущенные</label>
+            <input type="number" id="goalsAgainst" min="0" step="1" placeholder="0" />
+          </div>
+          <div class="form-group" style="flex:0 0 auto; align-self:flex-end;">
+            <button type="submit">Сохранить матч</button>
+          </div>
+        </div>
+      </form>
+      <div class="status" id="matchStatus"></div>
+    </div>
+  </section>
+
+  <!-- Правая колонка: таблицы и история соперников -->
+  <section class="section-grid">
+    <!-- Таблица матчей -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          📋 Матчи
+          <span class="card-pill">Список результатов</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Все сыгранные матчи с указанием турнира, соперника, счёта и результата. Можно удалить отдельный матч.
+      </p>
+      <div class="filters-row">
+        <div class="form-group" style="margin-bottom:0; max-width:110px;">
+          <label for="filterSeason">Сезон</label>
+          <select id="filterSeason"></select>
+        </div>
+        <div class="form-group" style="margin-bottom:0; max-width:150px;">
+          <label for="filterTournament">Турнир</label>
+          <select id="filterTournament"></select>
+        </div>
+        <div class="form-group" style="margin-bottom:0; max-width:150px;">
+          <label for="filterOpponent">Соперник</label>
+          <select id="filterOpponent"></select>
+        </div>
+        <span class="badge">Фильтры применяются сразу</span>
+      </div>
+      <div class="table-wrapper" id="matchesTableWrapper">
+        <div class="empty-state">Матчей пока нет. Внеси первый матч слева.</div>
+      </div>
+    </div>
+
+    <!-- История с соперником -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          🔍 История с соперником
+          <span class="card-pill">Head-to-head</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Выбери соперника и смотри всю историю встреч: матчи, счёт, результат + сводная статистика.
+      </p>
+      <div class="filters-row">
+        <div class="form-group" style="margin-bottom:0; min-width:180px;">
+          <label for="h2hOpponent">Соперник</label>
+          <select id="h2hOpponent"></select>
+        </div>
+      </div>
+      <div class="table-wrapper" id="h2hTableWrapper">
+        <div class="empty-state">Выбери соперника, чтобы увидеть историю матчей.</div>
+      </div>
+      <div class="summary-line" id="h2hSummary"></div>
+    </div>
+
+    <!-- Статистика по сезонам/турнирам/суммарно -->
+    <div class="card" style="grid-column: 1 / -1;">
+      <div class="card-header">
+        <div class="card-title">
+          📊 Общая статистика
+          <span class="card-pill">Сезоны · Турниры · Итого</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Смотри баланс побед/ничьих/поражений, забитые и пропущенные мячи по сезонам, по турнирам и суммарно.
+      </p>
+      <div class="filters-row">
+        <span class="stat-tag">М — Матчи</span>
+        <span class="stat-tag">В / Н / П — победы, ничьи, поражения</span>
+        <span class="stat-tag">+ / − — забитые / пропущенные</span>
+        <span class="stat-tag">Δ — разница мячей</span>
+      </div>
+
+      <h4 style="font-size:0.8rem; margin:6px 0 2px 4px;">По сезонам</h4>
+      <div class="table-wrapper" id="seasonStatsWrapper">
+        <div class="empty-state">Недостаточно данных для подсчёта.</div>
+      </div>
+
+      <h4 style="font-size:0.8rem; margin:10px 0 2px 4px;">По турнирам</h4>
+      <div class="table-wrapper" id="tournamentStatsWrapper">
+        <div class="empty-state">Недостаточно данных для подсчёта.</div>
+      </div>
+
+      <h4 style="font-size:0.8rem; margin:10px 0 2px 4px;">Суммарно</h4>
+      <div class="table-wrapper" id="totalStatsWrapper">
+        <div class="empty-state">Матчей ещё нет.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // ----- Ключи localStorage -----
+  const STORAGE_KEYS = {
+    tournaments: "fc26_match_tournaments",
+    opponents: "fc26_match_opponents",
+    matches: "fc26_match_matches",
+  };
+
+  // ----- Состояние -----
+  let tournaments = [];
+  let opponents = [];
+  let matches = [];
+
+  // ----- Вспомогательные -----
+  function createId() {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+  }
+
+  function loadFromStorage() {
+    try {
+      const tRaw = localStorage.getItem(STORAGE_KEYS.tournaments);
+      const oRaw = localStorage.getItem(STORAGE_KEYS.opponents);
+      const mRaw = localStorage.getItem(STORAGE_KEYS.matches);
+
+      tournaments = tRaw ? JSON.parse(tRaw) : [];
+      opponents = oRaw ? JSON.parse(oRaw) : [];
+      matches = mRaw ? JSON.parse(mRaw) : [];
+    } catch (e) {
+      console.error("Ошибка чтения localStorage", e);
+      tournaments = [];
+      opponents = [];
+      matches = [];
+    }
+  }
+
+  function saveTournaments() {
+    localStorage.setItem(STORAGE_KEYS.tournaments, JSON.stringify(tournaments));
+  }
+  function saveOpponents() {
+    localStorage.setItem(STORAGE_KEYS.opponents, JSON.stringify(opponents));
+  }
+  function saveMatches() {
+    localStorage.setItem(STORAGE_KEYS.matches, JSON.stringify(matches));
+  }
+
+  function getTournamentName(id) {
+    const t = tournaments.find(t => t.id === id);
+    return t ? t.name : "Неизвестный турнир";
+  }
+
+  function getOpponentName(id) {
+    const o = opponents.find(o => o.id === id);
+    return o ? o.name : "Неизвестный соперник";
+  }
+
+  function parseIntOrZero(value) {
+    const n = parseInt(value, 10);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function calcResult(goalsFor, goalsAgainst) {
+    if (goalsFor > goalsAgainst) return "win";
+    if (goalsFor < goalsAgainst) return "loss";
+    return "draw";
+  }
+
+  function resultText(code) {
+    switch (code) {
+      case "win": return "Победа";
+      case "draw": return "Ничья";
+      case "loss": return "Поражение";
+      default: return "";
+    }
+  }
+
+  function resultClass(code) {
+    switch (code) {
+      case "win": return "result-pill result-win";
+      case "draw": return "result-pill result-draw";
+      case "loss": return "result-pill result-loss";
+      default: return "result-pill";
+    }
+  }
+
+  // ----- Рендер селектов сезонов/фильтров -----
+  function populateSeasonSelects() {
+    const matchSeason = document.getElementById("matchSeason");
+    const filterSeason = document.getElementById("filterSeason");
+    matchSeason.innerHTML = "";
+    filterSeason.innerHTML = "";
+
+    for (let i = 1; i <= 15; i++) {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = i;
+      matchSeason.appendChild(opt);
+    }
+
+    const optAll = document.createElement("option");
+    optAll.value = "all";
+    optAll.textContent = "Все";
+    filterSeason.appendChild(optAll);
+    for (let i = 1; i <= 15; i++) {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = i;
+      filterSeason.appendChild(opt);
+    }
+    filterSeason.value = "all";
+  }
+
+  // ----- Турниры -----
+  function renderTournaments() {
+    const chips = document.getElementById("tournamentChips");
+    const selectMatch = document.getElementById("matchTournament");
+    const selectFilter = document.getElementById("filterTournament");
+
+    chips.innerHTML = "";
+    selectMatch.innerHTML = "";
+    selectFilter.innerHTML = "";
+
+    const optAll = document.createElement("option");
+    optAll.value = "all";
+    optAll.textContent = "Все турниры";
+    selectFilter.appendChild(optAll);
+
+    if (!tournaments.length) {
+      const none = document.createElement("option");
+      none.value = "";
+      none.textContent = "Сначала добавь турнир";
+      selectMatch.appendChild(none);
+    } else {
+      tournaments
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name, "ru"))
+        .forEach((t) => {
+          const chip = document.createElement("div");
+          chip.className = "chip";
+          const span = document.createElement("span");
+          span.className = "chip-name";
+          span.textContent = t.name;
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "button-secondary";
+          btn.textContent = "✕";
+          btn.addEventListener("click", () => {
+            if (!confirm(`Удалить турнир "${t.name}"? Матчи останутся, но будут помечены как неизвестный турнир.`)) return;
+            tournaments = tournaments.filter(x => x.id !== t.id);
+            saveTournaments();
+            renderTournaments();
+            renderMatchesTable();
+            renderTournamentStats();
+          });
+          chip.appendChild(span);
+          chip.appendChild(btn);
+          chips.appendChild(chip);
+
+          const opt1 = document.createElement("option");
+          opt1.value = t.id;
+          opt1.textContent = t.name;
+          selectMatch.appendChild(opt1);
+
+          const opt2 = document.createElement("option");
+          opt2.value = t.id;
+          opt2.textContent = t.name;
+          selectFilter.appendChild(opt2);
+        });
+    }
+  }
+
+  // ----- Соперники -----
+  function renderOpponents() {
+    const chips = document.getElementById("opponentChips");
+    const selectMatch = document.getElementById("matchOpponent");
+    const selectFilter = document.getElementById("filterOpponent");
+    const selectH2H = document.getElementById("h2hOpponent");
+
+    chips.innerHTML = "";
+    selectMatch.innerHTML = "";
+    selectFilter.innerHTML = "";
+    selectH2H.innerHTML = "";
+
+    const optAllFilter = document.createElement("option");
+    optAllFilter.value = "all";
+    optAllFilter.textContent = "Все соперники";
+    selectFilter.appendChild(optAllFilter);
+
+    const optH2HPlaceholder = document.createElement("option");
+    optH2HPlaceholder.value = "";
+    optH2HPlaceholder.textContent = "Выбери соперника";
+    selectH2H.appendChild(optH2HPlaceholder);
+
+    if (!opponents.length) {
+      const none = document.createElement("option");
+      none.value = "";
+      none.textContent = "Сначала добавь соперника";
+      selectMatch.appendChild(none);
+    } else {
+      opponents
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name, "ru"))
+        .forEach((o) => {
+          const chip = document.createElement("div");
+          chip.className = "chip";
+          const span = document.createElement("span");
+          span.className = "chip-name";
+          span.textContent = o.name;
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "button-secondary";
+          btn.textContent = "✕";
+          btn.addEventListener("click", () => {
+            if (!confirm(`Удалить соперника "${o.name}"? Матчи останутся, но будут помечены как неизвестный соперник.`)) return;
+            opponents = opponents.filter(x => x.id !== o.id);
+            saveOpponents();
+            renderOpponents();
+            renderMatchesTable();
+            renderH2H(); // пересчёт
+            renderAllStats();
+          });
+          chip.appendChild(span);
+          chip.appendChild(btn);
+          chips.appendChild(chip);
+
+          const opt1 = document.createElement("option");
+          opt1.value = o.id;
+          opt1.textContent = o.name;
+          selectMatch.appendChild(opt1);
+
+          const opt2 = document.createElement("option");
+          opt2.value = o.id;
+          opt2.textContent = o.name;
+          selectFilter.appendChild(opt2);
+
+          const opt3 = document.createElement("option");
+          opt3.value = o.id;
+          opt3.textContent = o.name;
+          selectH2H.appendChild(opt3);
+        });
+    }
+  }
+
+  // ----- Таблица матчей -----
+  function renderMatchesTable() {
+    const wrapper = document.getElementById("matchesTableWrapper");
+    wrapper.innerHTML = "";
+
+    if (!matches.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "Матчей пока нет.";
+      wrapper.appendChild(empty);
+      renderAllStats();
+      return;
+    }
+
+    const seasonFilter = document.getElementById("filterSeason").value;
+    const tournamentFilter = document.getElementById("filterTournament").value;
+    const opponentFilter = document.getElementById("filterOpponent").value;
+
+    let rows = matches
+      .slice()
+      .map(m => ({ ...m }))
+      .sort((a, b) => {
+        // по сезону, затем по дате (id как прокси)
+        if (a.season === b.season) {
+          return a.id.localeCompare(b.id);
+        }
+        return a.season - b.season;
+      });
+
+    if (seasonFilter !== "all") {
+      const s = parseInt(seasonFilter, 10);
+      rows = rows.filter(r => r.season === s);
+    }
+    if (tournamentFilter !== "all") {
+      rows = rows.filter(r => r.tournamentId === tournamentFilter);
+    }
+    if (opponentFilter !== "all") {
+      rows = rows.filter(r => r.opponentId === opponentFilter);
+    }
+
+    if (!rows.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "Под выбранные фильтры матчей не найдено.";
+      wrapper.appendChild(empty);
+      renderAllStats();
+      return;
+    }
+
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const tbody = document.createElement("tbody");
+
+    const headerRow = document.createElement("tr");
+    const headers = ["Сезон", "Турнир", "Соперник", "Счёт", "Результат", ""];
+    headers.forEach((h) => {
+      const th = document.createElement("th");
+      th.textContent = h;
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+
+    rows.forEach((m) => {
+      const tr = document.createElement("tr");
+
+      const seasonTd = document.createElement("td");
+      seasonTd.textContent = m.season;
+      tr.appendChild(seasonTd);
+
+      const tourTd = document.createElement("td");
+      tourTd.textContent = getTournamentName(m.tournamentId);
+      tr.appendChild(tourTd);
+
+      const oppTd = document.createElement("td");
+      oppTd.textContent = getOpponentName(m.opponentId);
+      tr.appendChild(oppTd);
+
+      const scoreTd = document.createElement("td");
+      scoreTd.textContent = `${m.goalsFor}:${m.goalsAgainst}`;
+      tr.appendChild(scoreTd);
+
+      const resultCode = calcResult(m.goalsFor, m.goalsAgainst);
+      const resultTd = document.createElement("td");
+      const span = document.createElement("span");
+      span.className = resultClass(resultCode);
+      span.textContent = resultText(resultCode);
+      resultTd.appendChild(span);
+      tr.appendChild(resultTd);
+
+      const actionsTd = document.createElement("td");
+      actionsTd.style.textAlign = "center";
+      const delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "button-secondary";
+      delBtn.textContent = "✕";
+      delBtn.title = "Удалить матч";
+      delBtn.style.padding = "2px 8px";
+      delBtn.style.fontSize = "0.7rem";
+      delBtn.addEventListener("click", () => {
+        if (!confirm("Удалить этот матч?")) return;
+        matches = matches.filter(x => x.id !== m.id);
+        saveMatches();
+        renderMatchesTable();
+        renderH2H();
+        renderAllStats();
+      });
+      actionsTd.appendChild(delBtn);
+      tr.appendChild(actionsTd);
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    wrapper.appendChild(table);
+
+    renderAllStats();
+  }
+
+  // ----- История с соперником -----
+  function renderH2H() {
+    const select = document.getElementById("h2hOpponent");
+    const wrapper = document.getElementById("h2hTableWrapper");
+    const summaryEl = document.getElementById("h2hSummary");
+
+    wrapper.innerHTML = "";
+    summaryEl.textContent = "";
+
+    const opponentId = select.value;
+    if (!opponentId) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "Выбери соперника, чтобы увидеть историю матчей.";
+      wrapper.appendChild(empty);
+      return;
+    }
+
+    const h2hMatches = matches
+      .filter(m => m.opponentId === opponentId)
+      .sort((a, b) => a.season - b.season);
+
+    if (!h2hMatches.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "С этим соперником ещё не играли.";
+      wrapper.appendChild(empty);
+      return;
+    }
+
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const tbody = document.createElement("tbody");
+
+    const hr = document.createElement("tr");
+    ["Сезон", "Турнир", "Счёт", "Результат"].forEach(h => {
+      const th = document.createElement("th");
+      th.textContent = h;
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+
+    let wins = 0, draws = 0, losses = 0, gf = 0, ga = 0;
+
+    h2hMatches.forEach(m => {
+      const tr = document.createElement("tr");
+
+      const seasonTd = document.createElement("td");
+      seasonTd.textContent = m.season;
+      tr.appendChild(seasonTd);
+
+      const tourTd = document.createElement("td");
+      tourTd.textContent = getTournamentName(m.tournamentId);
+      tr.appendChild(tourTd);
+
+      const scoreTd = document.createElement("td");
+      scoreTd.textContent = `${m.goalsFor}:${m.goalsAgainst}`;
+      tr.appendChild(scoreTd);
+
+      const resultCode = calcResult(m.goalsFor, m.goalsAgainst);
+      const rTd = document.createElement("td");
+      const span = document.createElement("span");
+      span.className = resultClass(resultCode);
+      span.textContent = resultText(resultCode);
+      rTd.appendChild(span);
+      tr.appendChild(rTd);
+
+      tbody.appendChild(tr);
+
+      gf += m.goalsFor;
+      ga += m.goalsAgainst;
+      if (resultCode === "win") wins++;
+      else if (resultCode === "draw") draws++;
+      else if (resultCode === "loss") losses++;
+    });
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    wrapper.appendChild(table);
+
+    const oppName = getOpponentName(opponentId);
+    const total = h2hMatches.length;
+    const diff = gf - ga;
+    const sign = diff > 0 ? "+" : diff < 0 ? "−" : "±";
+    const diffStr = diff === 0 ? "0" : Math.abs(diff);
+
+    summaryEl.textContent =
+      `Против ${oppName}: М${total}, В${wins}, Н${draws}, П${losses}, ` +
+      `мячи ${gf}:${ga} (${sign}${diffStr}).`;
+  }
+
+  // ----- Статистика -----
+  function renderSeasonStats() {
+    const wrapper = document.getElementById("seasonStatsWrapper");
+    wrapper.innerHTML = "";
+
+    if (!matches.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "Матчей пока нет.";
+      wrapper.appendChild(empty);
+      return;
+    }
+
+    const bySeason = {};
+    matches.forEach(m => {
+      if (!bySeason[m.season]) {
+        bySeason[m.season] = {
+          matches: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0
+        };
+      }
+      const s = bySeason[m.season];
+      s.matches++;
+      s.gf += m.goalsFor;
+      s.ga += m.goalsAgainst;
+      const r = calcResult(m.goalsFor, m.goalsAgainst);
+      if (r === "win") s.wins++;
+      else if (r === "draw") s.draws++;
+      else if (r === "loss") s.losses++;
+    });
+
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const tbody = document.createElement("tbody");
+
+    const hr = document.createElement("tr");
+    ["Сезон", "М", "В", "Н", "П", "+", "−", "Δ"].forEach(h => {
+      const th = document.createElement("th");
+      th.textContent = h;
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+
+    Object.keys(bySeason)
+      .map(k => parseInt(k, 10))
+      .sort((a, b) => a - b)
+      .forEach(season => {
+        const s = bySeason[season];
+        const tr = document.createElement("tr");
+        const diff = s.gf - s.ga;
+        const diffText = diff > 0 ? "+" + diff : diff < 0 ? diff.toString() : "0";
+
+        const cells = [
+          season,
+          s.matches,
+          s.wins,
+          s.draws,
+          s.losses,
+          s.gf,
+          s.ga,
+          diffText
+        ];
+        cells.forEach((val, idx) => {
+          const td = document.createElement("td");
+          if (idx === 0) td.style.textAlign = "left";
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    wrapper.appendChild(table);
+  }
+
+  function renderTournamentStats() {
+    const wrapper = document.getElementById("tournamentStatsWrapper");
+    wrapper.innerHTML = "";
+
+    if (!matches.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "Матчей пока нет.";
+      wrapper.appendChild(empty);
+      return;
+    }
+
+    const byTournament = {};
+    matches.forEach(m => {
+      const key = m.tournamentId || "unknown";
+      if (!byTournament[key]) {
+        byTournament[key] = {
+          matches: 0, wins: 0, draws: 0, losses: 0, gf: 0, ga: 0
+        };
+      }
+      const t = byTournament[key];
+      t.matches++;
+      t.gf += m.goalsFor;
+      t.ga += m.goalsAgainst;
+      const r = calcResult(m.goalsFor, m.goalsAgainst);
+      if (r === "win") t.wins++;
+      else if (r === "draw") t.draws++;
+      else if (r === "loss") t.losses++;
+    });
+
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const tbody = document.createElement("tbody");
+
+    const hr = document.createElement("tr");
+    ["Турнир", "М", "В", "Н", "П", "+", "−", "Δ"].forEach(h => {
+      const th = document.createElement("th");
+      th.textContent = h;
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+
+    Object.keys(byTournament)
+      .map(id => id)
+      .sort((a, b) => getTournamentName(a).localeCompare(getTournamentName(b), "ru"))
+      .forEach(id => {
+        const t = byTournament[id];
+        const tr = document.createElement("tr");
+        const diff = t.gf - t.ga;
+        const diffText = diff > 0 ? "+" + diff : diff < 0 ? diff.toString() : "0";
+
+        const name = getTournamentName(id);
+
+        const cells = [
+          name,
+          t.matches,
+          t.wins,
+          t.draws,
+          t.losses,
+          t.gf,
+          t.ga,
+          diffText
+        ];
+        cells.forEach((val, idx) => {
+          const td = document.createElement("td");
+          if (idx === 0) td.style.textAlign = "left";
+          td.textContent = val;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    wrapper.appendChild(table);
+  }
+
+  function renderTotalStats() {
+    const wrapper = document.getElementById("totalStatsWrapper");
+    wrapper.innerHTML = "";
+
+    if (!matches.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "Матчей пока нет.";
+      wrapper.appendChild(empty);
+      return;
+    }
+
+    let matchesCount = 0, wins = 0, draws = 0, losses = 0, gf = 0, ga = 0;
+
+    matches.forEach(m => {
+      matchesCount++;
+      gf += m.goalsFor;
+      ga += m.goalsAgainst;
+      const r = calcResult(m.goalsFor, m.goalsAgainst);
+      if (r === "win") wins++;
+      else if (r === "draw") draws++;
+      else if (r === "loss") losses++;
+    });
+
+    const diff = gf - ga;
+    const diffText = diff > 0 ? "+" + diff : diff < 0 ? diff.toString() : "0";
+
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const tbody = document.createElement("tbody");
+
+    const hr = document.createElement("tr");
+    ["", "М", "В", "Н", "П", "+", "−", "Δ"].forEach(h => {
+      const th = document.createElement("th");
+      th.textContent = h;
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+
+    const tr = document.createElement("tr");
+    const cells = [
+      "Итого",
+      matchesCount,
+      wins,
+      draws,
+      losses,
+      gf,
+      ga,
+      diffText
+    ];
+    cells.forEach((val, idx) => {
+      const td = document.createElement("td");
+      if (idx === 0) td.style.textAlign = "left";
+      td.textContent = val;
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    wrapper.appendChild(table);
+  }
+
+  function renderAllStats() {
+    renderSeasonStats();
+    renderTournamentStats();
+    renderTotalStats();
+  }
+
+  // ----- Обработчики форм -----
+  function initForms() {
+    // турнир
+    const tForm = document.getElementById("tournamentForm");
+    const tInput = document.getElementById("tournamentName");
+    const tStatus = document.getElementById("tournamentStatus");
+
+    tForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = tInput.value.trim();
+      if (!name) {
+        tStatus.textContent = "Название турнира не может быть пустым.";
+        tStatus.className = "status error";
+        return;
+      }
+      const exists = tournaments.some(t => t.name.toLowerCase() === name.toLowerCase());
+      if (exists) {
+        tStatus.textContent = "Такой турнир уже есть.";
+        tStatus.className = "status error";
+        return;
+      }
+      tournaments.push({ id: createId(), name });
+      saveTournaments();
+      renderTournaments();
+      tInput.value = "";
+      tStatus.textContent = "Турнир добавлен.";
+      tStatus.className = "status success";
+    });
+
+    // соперник
+    const oForm = document.getElementById("opponentForm");
+    const oInput = document.getElementById("opponentName");
+    const oStatus = document.getElementById("opponentStatus");
+
+    oForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = oInput.value.trim();
+      if (!name) {
+        oStatus.textContent = "Название соперника не может быть пустым.";
+        oStatus.className = "status error";
+        return;
+      }
+      const exists = opponents.some(o => o.name.toLowerCase() === name.toLowerCase());
+      if (exists) {
+        oStatus.textContent = "Такой соперник уже есть.";
+        oStatus.className = "status error";
+        return;
+      }
+      opponents.push({ id: createId(), name });
+      saveOpponents();
+      renderOpponents();
+      oInput.value = "";
+      oStatus.textContent = "Соперник добавлен.";
+      oStatus.className = "status success";
+    });
+
+    // матч
+    const mForm = document.getElementById("matchForm");
+    const mStatus = document.getElementById("matchStatus");
+
+    mForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const season = parseIntOrZero(document.getElementById("matchSeason").value);
+      const tournamentId = document.getElementById("matchTournament").value;
+      const opponentId = document.getElementById("matchOpponent").value;
+      const goalsFor = parseIntOrZero(document.getElementById("goalsFor").value);
+      const goalsAgainst = parseIntOrZero(document.getElementById("goalsAgainst").value);
+
+      if (!tournamentId) {
+        mStatus.textContent = "Выбери турнир.";
+        mStatus.className = "status error";
+        return;
+      }
+      if (!opponentId) {
+        mStatus.textContent = "Выбери соперника.";
+        mStatus.className = "status error";
+        return;
+      }
+
+      const match = {
+        id: createId(),
+        season,
+        tournamentId,
+        opponentId,
+        goalsFor,
+        goalsAgainst
+      };
+      matches.push(match);
+      saveMatches();
+      renderMatchesTable();
+      renderH2H();
+      mStatus.textContent = "Матч сохранён.";
+      mStatus.className = "status success";
+
+      document.getElementById("goalsFor").value = "";
+      document.getElementById("goalsAgainst").value = "";
+    });
+
+    document.getElementById("filterSeason").addEventListener("change", renderMatchesTable);
+    document.getElementById("filterTournament").addEventListener("change", renderMatchesTable);
+    document.getElementById("filterOpponent").addEventListener("change", renderMatchesTable);
+
+    document.getElementById("h2hOpponent").addEventListener("change", renderH2H);
+  }
+
+  // ----- Инициализация -----
+  document.addEventListener("DOMContentLoaded", () => {
+    loadFromStorage();
+    populateSeasonSelects();
+    renderTournaments();
+    renderOpponents();
+    renderMatchesTable();
+    renderH2H();
+    renderAllStats();
+    initForms();
+  });
+</script>
+</body>
+</html>
