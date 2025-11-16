@@ -397,6 +397,11 @@
       color: var(--text-muted);
     }
 
+    .file-input {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
     @media (max-width: 600px) {
       header {
         padding: 10px 12px;
@@ -454,12 +459,12 @@
   </div>
   <div class="header-badge">
     <span>🔒</span>
-    <span>Данные матчей в localStorage</span>
+    <span>localStorage + экспорт в файл</span>
   </div>
 </header>
 
 <main>
-  <!-- Левая колонка: справочники + ввод матча -->
+  <!-- Левая колонка: справочники + ввод матча + бэкап -->
   <section class="section-grid">
     <!-- Турниры -->
     <div class="card">
@@ -558,6 +563,29 @@
         </div>
       </form>
       <div class="status" id="matchStatus"></div>
+    </div>
+
+    <!-- Резервное копирование -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          💾 Резервное копирование
+          <span class="card-pill">Экспорт / импорт</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Экспортируй турниры, соперников и все матчи в один файл. При импорте всё восстановится, даже на другом устройстве.
+      </p>
+      <div class="form-row" style="flex-wrap:wrap; gap:8px;">
+        <button type="button" id="exportBtn">⬇️ Экспортировать данные</button>
+        <label class="file-input">
+          ⬆️ Импортировать:
+          <input type="file" id="importFile" accept="application/json,.json" />
+        </label>
+      </div>
+      <p style="margin-top:6px; font-size:0.75rem; color:var(--text-muted);">
+        Файл: <code>barca_matches_backup.json</code>. Импорт перезапишет текущие турниры, соперников и матчи.
+      </p>
     </div>
   </section>
 
@@ -737,6 +765,62 @@
     }
   }
 
+  // ----- Экспорт / импорт -----
+  function exportData() {
+    const data = {
+      tournaments,
+      opponents,
+      matches,
+      exportedAt: new Date().toISOString(),
+      version: "1.0"
+    };
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "barca_matches_backup.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function importDataFromFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data || !Array.isArray(data.tournaments) || !Array.isArray(data.opponents) || !Array.isArray(data.matches)) {
+          alert("Некорректный файл бэкапа: нет tournaments/opponents/matches.");
+          return;
+        }
+        tournaments = data.tournaments;
+        opponents = data.opponents;
+        matches = data.matches;
+
+        saveTournaments();
+        saveOpponents();
+        saveMatches();
+
+        populateSeasonSelects();
+        renderTournaments();
+        renderOpponents();
+        renderMatchesTable();
+        renderH2H();
+        renderAllStats();
+
+        alert("Данные матчей успешно импортированы!");
+      } catch (err) {
+        console.error(err);
+        alert("Ошибка при чтении файла бэкапа. Убедись, что выбран правильный JSON.");
+      }
+    };
+    reader.readAsText(file, "utf-8");
+  }
+
   // ----- Рендер селектов сезонов/фильтров -----
   function populateSeasonSelects() {
     const matchSeason = document.getElementById("matchSeason");
@@ -870,7 +954,7 @@
             saveOpponents();
             renderOpponents();
             renderMatchesTable();
-            renderH2H(); // пересчёт
+            renderH2H();
             renderAllStats();
           });
           chip.appendChild(span);
@@ -917,7 +1001,6 @@
       .slice()
       .map(m => ({ ...m }))
       .sort((a, b) => {
-        // по сезону, затем по дате (id как прокси)
         if (a.season === b.season) {
           return a.id.localeCompare(b.id);
         }
@@ -1220,6 +1303,7 @@
       th.textContent = h;
       hr.appendChild(th);
     });
+    theead = thead;
     thead.appendChild(hr);
 
     Object.keys(byTournament)
@@ -1429,6 +1513,31 @@
     document.getElementById("filterOpponent").addEventListener("change", renderMatchesTable);
 
     document.getElementById("h2hOpponent").addEventListener("change", renderH2H);
+
+    // экспорт / импорт
+    const exportBtn = document.getElementById("exportBtn");
+    const importFileInput = document.getElementById("importFile");
+
+    if (exportBtn) {
+      exportBtn.addEventListener("click", exportData);
+    }
+
+    if (importFileInput) {
+      importFileInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) {
+          e.target.value = "";
+          return;
+        }
+        const ok = confirm("Импортировать данные из файла и перезаписать текущую базу матчей?");
+        if (!ok) {
+          e.target.value = "";
+          return;
+        }
+        importDataFromFile(file);
+        e.target.value = "";
+      });
+    }
   }
 
   // ----- Инициализация -----
