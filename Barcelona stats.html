@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>EA FC 26 · Статистика Барселоны</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Chart.js для графика -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --barca-blue: #004d98;
+      --barca-claret: #a50044;
+      --barca-gold: #fdb913;
+      --barca-dark: #0b1421;
+      --barca-bg: #020814;
+      --card-bg: rgba(4, 17, 40, 0.95);
+      --text-main: #f5f5f5;
+      --text-muted: #a0aec0;
+      --border-soft: rgba(255, 255, 255, 0.08);
+      --input-bg: rgba(3, 22, 46, 0.95);
+      --error-color: #ff6b6b;
+      --success-color: #22c55e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1a3358 0, var(--barca-bg) 45%, #01030a 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(90deg, var(--barca-claret), var(--barca-blue));
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-symbol {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background:
+        linear-gradient(135deg, var(--barca-gold), #ffeaa7);
+      box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.6);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .logo-symbol::before,
+    .logo-symbol::after {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      border-radius: 10px;
+      border: 2px solid rgba(0, 0, 0, 0.7);
+    }
+
+    .logo-title-main {
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .logo-title-sub {
+      font-size: 0.8rem;
+      opacity: 0.85;
+    }
+
+    .header-badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      background: rgba(0, 0, 0, 0.2);
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    main {
+  padding: 20px;
+  max-width: 1400px; /* было 1200 */
+  margin: 0 auto 40px;
+  display: grid;
+  /* правая колонка шире левой */
+  grid-template-columns: minmax(0, 1.0fr) minmax(0, 2.1fr);
+  gap: 20px;
+}
+
+
+    @media (max-width: 960px) {
+      main {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 18px;
+      padding: 18px 18px 16px;
+      border: 1px solid var(--border-soft);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(20px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-pill {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.85;
+    }
+
+    .card-description {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .form-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 0.8rem;
+    }
+
+    label {
+      color: var(--text-muted);
+      font-size: 0.76rem;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      background: var(--input-bg);
+      border-radius: 999px;
+      border: 1px solid var(--border-soft);
+      padding: 8px 12px;
+      color: var(--text-main);
+      font-size: 0.82rem;
+      outline: none;
+      transition: border 0.15s, box-shadow 0.15s, background 0.15s;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+      border-color: var(--barca-gold);
+      box-shadow: 0 0 0 1px rgba(253, 185, 19, 0.5);
+      background: rgba(4, 30, 72, 0.95);
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    button {
+      border-radius: 999px;
+      border: none;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, var(--barca-gold), #ffe27a);
+      color: #3b2800;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.8);
+      filter: brightness(1.05);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 5px 14px rgba(0, 0, 0, 0.75);
+      filter: brightness(0.96);
+    }
+
+    .button-secondary {
+      background: transparent;
+      border: 1px solid var(--border-soft);
+      color: var(--text-main);
+      box-shadow: none;
+    }
+
+    .button-secondary:hover {
+      border-color: rgba(255, 255, 255, 0.4);
+      background: rgba(13, 30, 63, 0.9);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6);
+    }
+
+    .players-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+      max-height: 80px;
+      overflow-y: auto;
+    }
+
+    .player-chip {
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 3px 9px;
+      font-size: 0.75rem;
+      background: rgba(0, 0, 0, 0.32);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .player-initials {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--barca-blue), var(--barca-claret));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(0, 0, 0, 0.35);
+      color: var(--text-muted);
+    }
+
+    .status {
+      margin-top: 6px;
+      font-size: 0.78rem;
+    }
+
+    .status.success {
+      color: var(--success-color);
+    }
+
+    .status.error {
+      color: var(--error-color);
+    }
+
+   .table-wrapper {
+  border-radius: 14px;
+  border: 1px solid var(--border-soft);
+  margin-top: 8px;
+  background: rgba(2, 11, 26, 0.95);
+  /* важно: позволяем горизонтальный скролл */
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+
+   table {
+  width: 100%;
+  min-width: 900px; /* таблица не сжимается слишком узко */
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+
+    thead {
+      background: linear-gradient(90deg, rgba(165, 0, 68, 0.9), rgba(0, 77, 152, 0.9));
+    }
+
+    th,
+    td {
+      padding: 6px 8px;
+      text-align: right;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+    }
+
+    th {
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      position: relative;
+      white-space: nowrap;
+    }
+
+    th.sortable::after {
+      content: "↕";
+      font-size: 0.7rem;
+      opacity: 0.6;
+      margin-left: 4px;
+    }
+
+    th.sort-asc::after {
+      content: "↑";
+    }
+
+    th.sort-desc::after {
+      content: "↓";
+    }
+
+    tbody tr:nth-child(even) {
+      background: rgba(4, 16, 35, 0.92);
+    }
+
+    tbody tr:nth-child(odd) {
+      background: rgba(5, 22, 48, 0.92);
+    }
+
+    tbody tr:hover {
+      background: rgba(12, 39, 82, 0.96);
+    }
+
+    .empty-state {
+      padding: 10px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .filters-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 0.78rem;
+      flex-wrap: wrap;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 260px;
+      margin-top: 8px;
+    }
+
+    #chartMessage {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    .pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.7rem;
+    }
+
+    .pill {
+      padding: 3px 7px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(0, 0, 0, 0.35);
+    }
+
+    .soft-divider {
+      height: 1px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.24), transparent 65%);
+      opacity: 0.5;
+      margin: 6px 0;
+    }
+
+    /* Цветовая индикация метрик */
+    td.metric-low {
+      color: #9ca3af;
+      opacity: 0.9;
+    }
+
+    td.metric-mid {
+      color: #facc15;
+      font-weight: 500;
+    }
+
+    td.metric-high {
+      color: #4ade80;
+      font-weight: 600;
+      text-shadow: 0 0 4px rgba(34, 197, 94, 0.3);
+    }
+
+    /* Для инпута файла */
+    .file-input {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+/* Адаптив под телефон (iPhone 16 Pro Max и похожие экраны) */
+@media (max-width: 600px) {
+  body {
+    font-size: 14px;
+  }
+
+  header {
+    padding: 10px 12px;
+  }
+
+  .logo-title-main {
+    font-size: 1rem;
+  }
+
+  .logo-title-sub {
+    font-size: 0.7rem;
+  }
+
+  .header-badge {
+    display: none; /* чтобы не съедало место сверху на узком экране */
+  }
+
+  main {
+    padding: 10px 8px 20px;
+    max-width: 100%;
+    margin: 0 auto 24px;
+    grid-template-columns: minmax(0, 1fr); /* одна колонка */
+    gap: 12px;
+  }
+
+  .card {
+    padding: 12px 10px;
+    border-radius: 14px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .card-title {
+    font-size: 0.95rem;
+  }
+
+  .card-description {
+    font-size: 0.75rem;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group {
+    width: 100%;
+  }
+
+  button {
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
+
+  .players-list {
+    max-height: 100px;
+  }
+
+  .filters-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chart-container {
+    height: 220px;
+  }
+
+  /* таблицы: немного мельче шрифт и горизонтальный скролл при необходимости */
+  .table-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  table {
+    font-size: 0.72rem;
+    min-width: 720px; /* чтобы столбцы не слепались, можно увеличить до 800 при желании */
+  }
+
+  th,
+  td {
+    padding: 4px 6px;
+  }
+}
+
+/* Совсем узкие экраны (окно сжали меньше айфона) */
+@media (max-width: 430px) {
+  .logo-title-sub {
+    display: none; /* оставим только основной заголовок */
+  }
+
+  table {
+    min-width: 680px;
+  }
+}
+
+
+  </style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-symbol"></div>
+    <div>
+      <div class="logo-title-main">BARÇA STATS HUB</div>
+      <div class="logo-title-sub">EA FC 26 — клубная статистика</div>
+    </div>
+  </div>
+  <div class="header-badge">
+    <span>🔒</span>
+    <span>Данные хранятся в браузере (localStorage) + экспорт в файл</span>
+  </div>
+</header>
+
+<main>
+  <!-- Левая колонка: ввод игроков и статистики -->
+  <section class="section-grid">
+    <!-- Блок игроков -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          👥 Игроки
+          <span class="card-pill">База игроков</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Сначала добавь всех игроков Барсы в свою локальную базу. Потом будешь выбирать их из списка при внесении статистики.
+      </p>
+      <form id="playerForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="playerName">Имя игрока</label>
+            <input type="text" id="playerName" placeholder="Например: Рафинья" required />
+          </div>
+          <div class="form-group" style="flex:0 0 auto; align-self:flex-end;">
+            <button type="submit">Добавить игрока</button>
+          </div>
+        </div>
+      </form>
+      <div class="soft-divider"></div>
+      <div class="players-list" id="playersList"></div>
+      <div class="status" id="playerStatus"></div>
+    </div>
+
+    <!-- Блок добавления статистики -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          📊 Сезонная статистика
+          <span class="card-pill">Ввод данных</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Вноси статистику за сезон для выбранного игрока. Сезоны нумеруются от 1 до 15.
+      </p>
+      <form id="statsForm">
+        <div class="form-row">
+          <div class="form-group" style="flex:0 0 80px;">
+            <label for="season">Сезон</label>
+            <select id="season"></select>
+          </div>
+          <div class="form-group">
+            <label for="statsPlayer">Игрок</label>
+            <select id="statsPlayer"></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="matches">Матчи</label>
+            <input type="number" id="matches" min="0" step="1" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label for="goals">Голы</label>
+            <input type="number" id="goals" min="0" step="1" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label for="assists">Голевые передачи</label>
+            <input type="number" id="assists" min="0" step="1" placeholder="0" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="rating">Оценка за сезон (например, 7.5)</label>
+            <input type="number" id="rating" min="0" max="10" step="0.1" placeholder="0.0" />
+          </div>
+          <div class="form-group" style="flex:0 0 auto; align-self:flex-end;">
+            <button type="submit">Сохранить статистику</button>
+          </div>
+        </div>
+      </form>
+      <div class="status" id="statsStatus"></div>
+      <p style="margin-top:6px; font-size:0.75rem; color:var(--text-muted);">
+        Подсказка: если добавить статистику повторно для того же игрока и сезона, данные будут суммироваться.
+      </p>
+    </div>
+
+    <!-- Резервное копирование -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          💾 Резервное копирование
+          <span class="card-pill">Экспорт / импорт</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Экспортируй данные в файл перед чисткой браузера или переездом на другой ПК. Потом можно импортировать и вернуть всю статистику.
+      </p>
+      <div class="form-row" style="flex-wrap:wrap; gap:8px;">
+        <button type="button" id="exportBtn">⬇️ Экспортировать данные</button>
+        <label class="file-input">
+          ⬆️ Импортировать:
+          <input type="file" id="importFile" accept="application/json,.json" />
+        </label>
+      </div>
+      <p style="margin-top:6px; font-size:0.75rem; color:var(--text-muted);">
+        Формат файла: <code>barca_stats_backup.json</code>. Импорт перезапишет текущих игроков и статистику.
+      </p>
+    </div>
+  </section>
+
+  <!-- Правая колонка: таблицы и график -->
+  <section class="section-grid">
+    <!-- Статистика по сезонам -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          📅 Статистика по сезонам
+          <span class="card-pill">Матчи · Голы · Гол+Пас · Оценка</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Таблица показывает статистику игроков по сезонам. Нажимай на заголовок столбца, чтобы сортировать.
+      </p>
+      <div class="filters-row">
+        <div class="form-group" style="margin-bottom:0; max-width:160px;">
+          <label for="seasonFilter">Сезон</label>
+          <select id="seasonFilter"></select>
+        </div>
+        <span class="badge">Клик по заголовку = сортировка</span>
+      </div>
+      <div class="table-wrapper" id="seasonTableWrapper">
+        <div class="empty-state">Пока нет данных. Добавь игроков и внеси статистику сезона.</div>
+      </div>
+    </div>
+
+    <!-- Суммарная статистика -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          🏆 Сумма за все сезоны
+          <span class="card-pill">Тоталы по игрокам</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Общая статистика по игрокам за все сезоны. Можно отсортировать по любому показателю.
+      </p>
+      <div class="pill-group">
+        <div class="pill">Σ Матчи</div>
+        <div class="pill">Σ Голы</div>
+        <div class="pill">Σ Голевые</div>
+        <div class="pill">Σ Г+П</div>
+        <div class="pill">Голы / игру</div>
+        <div class="pill">Г+П / игру</div>
+      </div>
+      <div class="table-wrapper" id="totalTableWrapper">
+        <div class="empty-state">Пока нет данных для подсчёта суммарной статистики.</div>
+      </div>
+    </div>
+
+    <!-- График динамики -->
+    <div class="card" style="grid-column: 1 / -1;">
+      <div class="card-header">
+        <div class="card-title">
+          📈 График игрока по сезонам
+          <span class="card-pill">Динамика показателей</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Выбери игрока и показатель (голы, передачи, матчи, гол+пас или оценка), чтобы увидеть изменение по сезонам.
+      </p>
+      <div class="filters-row">
+        <div class="form-group" style="min-width:160px;">
+          <label for="chartPlayer">Игрок</label>
+          <select id="chartPlayer"></select>
+        </div>
+        <div class="form-group" style="min-width:150px;">
+          <label for="chartMetric">Показатель</label>
+          <select id="chartMetric">
+            <option value="goals">Голы</option>
+            <option value="assists">Голевые передачи</option>
+            <option value="ga">Гол + пас</option>
+            <option value="matches">Матчи</option>
+            <option value="rating">Оценка</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:0 0 auto; align-self:flex-end;">
+          <button type="button" id="showChartBtn">Показать график</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="playerChartCanvas"></canvas>
+      </div>
+      <div id="chartMessage">Выбери игрока и показатель, затем нажми «Показать график».</div>
+    </div>
+  </section>
+</main>
+
+<script>
+  // ----- Константы localStorage -----
+  const STORAGE_KEYS = {
+    players: "fc26_players",
+    stats: "fc26_stats",
+  };
+
+  // ----- Состояние в памяти -----
+  let players = [];
+  let stats = [];
+
+  // Состояние сортировки
+  const sortState = {
+    seasonTable: { key: "season", direction: "asc" },
+    totalTable: { key: "goals", direction: "desc" },
+  };
+
+  let playerChart = null;
+
+  // ----- Работа с localStorage -----
+  function loadFromStorage() {
+    try {
+      const playersRaw = localStorage.getItem(STORAGE_KEYS.players);
+      const statsRaw = localStorage.getItem(STORAGE_KEYS.stats);
+      players = playersRaw ? JSON.parse(playersRaw) : [];
+      stats = statsRaw ? JSON.parse(statsRaw) : [];
+    } catch (e) {
+      console.error("Ошибка чтения из localStorage", e);
+      players = [];
+      stats = [];
+    }
+  }
+
+  function savePlayers() {
+    localStorage.setItem(STORAGE_KEYS.players, JSON.stringify(players));
+  }
+
+  function saveStats() {
+    localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(stats));
+  }
+
+  // ----- Вспомогательные функции -----
+  function createId() {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
+  }
+
+  function getPlayerById(id) {
+    return players.find((p) => p.id === id);
+  }
+
+  function getPlayerMap() {
+    const map = new Map();
+    players.forEach((p) => map.set(p.id, p));
+    return map;
+  }
+
+  function numberOrZero(value) {
+    const n = parseFloat(value);
+    return isNaN(n) ? 0 : n;
+  }
+
+  function getInitials(name) {
+    const parts = name.split(" ").filter(Boolean);
+    if (!parts.length) return "?";
+    if (parts.length === 1) {
+      return parts[0][0].toUpperCase();
+    }
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
+  // Диапазоны для цветовой индикации
+  function computeMetricRanges(rows, metricKeys) {
+    const ranges = {};
+    metricKeys.forEach((key) => {
+      let min = Infinity;
+      let max = -Infinity;
+      rows.forEach((r) => {
+        const v = Number(r[key]);
+        if (isNaN(v)) return;
+        if (v < min) min = v;
+        if (v > max) max = v;
+      });
+      if (min === Infinity) {
+        min = 0;
+        max = 0;
+      }
+      ranges[key] = { min, max };
+    });
+    return ranges;
+  }
+
+  function getMetricClass(key, value, ranges) {
+    const range = ranges[key];
+    if (!range) return "";
+    const min = range.min;
+    const max = range.max;
+    const v = Number(value);
+    if (isNaN(v) || max === min) return "";
+    const norm = (v - min) / (max - min); // 0..1
+    if (norm < 0.33) return "metric-low";
+    if (norm < 0.67) return "metric-mid";
+    return "metric-high";
+  }
+
+  // ----- Экспорт / импорт -----
+  function exportData() {
+    const data = {
+      players,
+      stats,
+      exportedAt: new Date().toISOString(),
+      version: "1.0",
+    };
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "barca_stats_backup.json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function importDataFromFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data || !Array.isArray(data.players) || !Array.isArray(data.stats)) {
+          alert("Некорректный файл бэкапа: нет players или stats.");
+          return;
+        }
+        if (!confirm("Импортировать данные из файла и перезаписать текущую базу?")) {
+          return;
+        }
+        players = data.players;
+        stats = data.stats;
+        savePlayers();
+        saveStats();
+        renderPlayers();
+        renderSeasonTable();
+        renderTotalTable();
+        if (playerChart) {
+          playerChart.destroy();
+          playerChart = null;
+        }
+        document.getElementById("chartMessage").textContent =
+          "Данные импортированы. Выбери игрока и показатель для графика.";
+        alert("Данные успешно импортированы!");
+      } catch (err) {
+        console.error(err);
+        alert("Ошибка при чтении файла бэкапа. Убедись, что выбран правильный JSON.");
+      }
+    };
+    reader.readAsText(file, "utf-8");
+  }
+
+  // ----- Удаление -----
+  function deletePlayer(playerId) {
+    const player = getPlayerById(playerId);
+    const name = player ? player.name : "игрока";
+
+    if (!confirm(`Удалить ${name} и ВСЮ его статистику за все сезоны?`)) {
+      return;
+    }
+
+    players = players.filter((p) => p.id !== playerId);
+    stats = stats.filter((s) => s.playerId !== playerId);
+    savePlayers();
+    saveStats();
+
+    renderPlayers();
+    renderSeasonTable();
+    renderTotalTable();
+
+    const chartPlayerSelect = document.getElementById("chartPlayer");
+    if (chartPlayerSelect && chartPlayerSelect.value === playerId) {
+      chartPlayerSelect.value = "";
+      if (playerChart) {
+        playerChart.destroy();
+        playerChart = null;
+      }
+      const msg = document.getElementById("chartMessage");
+      msg.textContent = "Игрок удалён. Выбери другого игрока для графика.";
+    }
+  }
+
+  function deleteSeasonStats(playerId, season) {
+    const player = getPlayerById(playerId);
+    const name = player ? player.name : "игрок";
+    if (
+      !confirm(
+        `Удалить ВСЮ статистику игрока ${name} за сезон ${season}? Это действие нельзя отменить.`
+      )
+    ) {
+      return;
+    }
+
+    stats = stats.filter(
+      (s) => !(s.playerId === playerId && s.season === season)
+    );
+    saveStats();
+    renderSeasonTable();
+    renderTotalTable();
+
+    // Обновим график, если он открыт по этому игроку
+    const chartPlayerSelect = document.getElementById("chartPlayer");
+    if (chartPlayerSelect && chartPlayerSelect.value === playerId) {
+      showChart();
+    }
+  }
+
+  // ----- Рендер UI -----
+  function populateSeasonSelects() {
+    const seasonSelect = document.getElementById("season");
+    const seasonFilter = document.getElementById("seasonFilter");
+
+    seasonSelect.innerHTML = "";
+    seasonFilter.innerHTML = "";
+
+    for (let i = 1; i <= 15; i++) {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = i;
+      seasonSelect.appendChild(opt);
+    }
+
+    const allOpt = document.createElement("option");
+    allOpt.value = "all";
+    allOpt.textContent = "Все сезоны";
+    seasonFilter.appendChild(allOpt);
+
+    for (let i = 1; i <= 15; i++) {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = "Сезон " + i;
+      seasonFilter.appendChild(opt);
+    }
+
+    seasonFilter.value = "all";
+  }
+
+  function renderPlayers() {
+    const playersList = document.getElementById("playersList");
+    const statsPlayerSelect = document.getElementById("statsPlayer");
+    const chartPlayerSelect = document.getElementById("chartPlayer");
+
+    playersList.innerHTML = "";
+    statsPlayerSelect.innerHTML = "";
+    chartPlayerSelect.innerHTML = "";
+
+    if (!players.length) {
+      const placeholder = document.createElement("div");
+      placeholder.className = "empty-state";
+      placeholder.textContent = "Добавь игроков, чтобы начать.";
+      playersList.appendChild(placeholder);
+
+      const noneOpt = document.createElement("option");
+      noneOpt.value = "";
+      noneOpt.textContent = "Сначала добавь игроков";
+      statsPlayerSelect.appendChild(noneOpt);
+
+      const noneOpt2 = document.createElement("option");
+      noneOpt2.value = "";
+      noneOpt2.textContent = "Нет игроков";
+      chartPlayerSelect.appendChild(noneOpt2);
+      return;
+    }
+
+    players
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name, "ru"))
+      .forEach((p) => {
+        // Чип игрока
+        const chip = document.createElement("div");
+        chip.className = "player-chip";
+        chip.dataset.playerId = p.id;
+
+        const initials = document.createElement("div");
+        initials.className = "player-initials";
+        initials.textContent = getInitials(p.name);
+
+        const span = document.createElement("span");
+        span.textContent = p.name;
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.textContent = "✕";
+        removeBtn.className = "button-secondary";
+        removeBtn.style.padding = "0 6px";
+        removeBtn.style.fontSize = "0.75rem";
+        removeBtn.style.lineHeight = "1.2";
+        removeBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          deletePlayer(p.id);
+        });
+
+        chip.appendChild(initials);
+        chip.appendChild(span);
+        chip.appendChild(removeBtn);
+        playersList.appendChild(chip);
+
+        // В селекты
+        const opt1 = document.createElement("option");
+        opt1.value = p.id;
+        opt1.textContent = p.name;
+        statsPlayerSelect.appendChild(opt1);
+
+        const opt2 = document.createElement("option");
+        opt2.value = p.id;
+        opt2.textContent = p.name;
+        chartPlayerSelect.appendChild(opt2);
+      });
+  }
+
+  function renderSeasonTable() {
+    const wrapper = document.getElementById("seasonTableWrapper");
+    wrapper.innerHTML = "";
+
+    if (!stats.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent =
+        "Нет статистики. Добавь хотя бы одну запись сезона.";
+      wrapper.appendChild(empty);
+      return;
+    }
+
+    const seasonFilter = document.getElementById("seasonFilter").value;
+    const playerMap = getPlayerMap();
+
+    let rows = stats.map((s) => {
+      const player = playerMap.get(s.playerId);
+      const goals = numberOrZero(s.goals);
+      const assists = numberOrZero(s.assists);
+      const matches = numberOrZero(s.matches);
+      const rating = numberOrZero(s.rating);
+      const ga = goals + assists;
+      const gpg = matches > 0 ? goals / matches : 0;
+      const apg = matches > 0 ? assists / matches : 0;
+      const gapg = matches > 0 ? ga / matches : 0;
+
+      return {
+        season: s.season,
+        playerId: s.playerId,
+        playerName: player ? player.name : "Неизвестно",
+        matches,
+        goals,
+        assists,
+        ga,
+        goalsPerGame: gpg,
+        assistsPerGame: apg,
+        gaPerGame: gapg,
+        rating,
+      };
+    });
+
+    if (seasonFilter !== "all") {
+      const seasonNum = parseInt(seasonFilter, 10);
+      rows = rows.filter((r) => r.season === seasonNum);
+    }
+
+    if (!rows.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "Для выбранного сезона данных пока нет.";
+      wrapper.appendChild(empty);
+      return;
+    }
+
+    // Сортировка
+    const { key, direction } = sortState.seasonTable;
+    rows.sort((a, b) =>
+      compareValues(a[key], b[key], key === "playerName", direction)
+    );
+
+    // Диапазоны для цветовой индикации
+    const metricKeys = [
+      "matches",
+      "goals",
+      "assists",
+      "ga",
+      "goalsPerGame",
+      "assistsPerGame",
+      "gaPerGame",
+      "rating",
+    ];
+    const ranges = computeMetricRanges(rows, metricKeys);
+
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const tbody = document.createElement("tbody");
+
+    const headers = [
+      { key: "season", label: "Сезон", numeric: true, sortable: true, metric: false },
+      { key: "playerName", label: "Игрок", numeric: false, sortable: true, metric: false },
+      { key: "matches", label: "Матчи", numeric: true, sortable: true, metric: true },
+      { key: "goals", label: "Голы", numeric: true, sortable: true, metric: true },
+      { key: "assists", label: "Пасы", numeric: true, sortable: true, metric: true },
+      { key: "ga", label: "Г+П", numeric: true, sortable: true, metric: true },
+      { key: "goalsPerGame", label: "Голы / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
+      { key: "assistsPerGame", label: "Пасы / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
+      { key: "gaPerGame", label: "Г+П / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
+      { key: "rating", label: "Оценка", numeric: true, sortable: true, metric: true, format: "fixed2" },
+      { key: "actions", label: "", numeric: false, sortable: false, metric: false },
+    ];
+
+    const trHead = document.createElement("tr");
+    headers.forEach((h) => {
+      const th = document.createElement("th");
+      th.textContent = h.label;
+      th.dataset.key = h.key;
+      th.dataset.numeric = h.numeric ? "1" : "0";
+
+      if (h.sortable !== false) {
+        th.classList.add("sortable");
+        if (sortState.seasonTable.key === h.key) {
+          th.classList.add(
+            sortState.seasonTable.direction === "asc"
+              ? "sort-asc"
+              : "sort-desc"
+          );
+        }
+        th.addEventListener("click", () => {
+          updateSort("seasonTable", h.key);
+          renderSeasonTable();
+        });
+      }
+
+      trHead.appendChild(th);
+    });
+    thead.appendChild(trHead);
+
+    rows.forEach((row) => {
+      const tr = document.createElement("tr");
+
+      headers.forEach((h) => {
+        if (h.key === "actions") {
+          const tdDelete = document.createElement("td");
+          tdDelete.style.textAlign = "center";
+          const deleteBtn = document.createElement("button");
+          deleteBtn.type = "button";
+          deleteBtn.textContent = "✕";
+          deleteBtn.title = "Удалить статистику этого игрока за этот сезон";
+          deleteBtn.className = "button-secondary";
+          deleteBtn.style.padding = "2px 8px";
+          deleteBtn.style.fontSize = "0.75rem";
+          deleteBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            deleteSeasonStats(row.playerId, row.season);
+          });
+          tdDelete.appendChild(deleteBtn);
+          tr.appendChild(tdDelete);
+          return;
+        }
+
+        const td = document.createElement("td");
+        let value = row[h.key];
+
+        if (h.format === "fixed2") {
+          value = Number(value).toFixed(2);
+        }
+
+        if (h.key === "playerName") {
+          td.style.textAlign = "left";
+        }
+
+        if (h.metric) {
+          const cls = getMetricClass(h.key, row[h.key], ranges);
+          if (cls) td.classList.add(cls);
+        }
+
+        td.textContent = value;
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    wrapper.appendChild(table);
+  }
+
+  function renderTotalTable() {
+    const wrapper = document.getElementById("totalTableWrapper");
+    wrapper.innerHTML = "";
+
+    if (!stats.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent =
+        "Нет статистики. Сначала добавь хотя бы одну запись сезона.";
+      wrapper.appendChild(empty);
+      return;
+    }
+
+    // Суммируем по игрокам
+    const totals = {};
+    const playerMap = getPlayerMap();
+
+    stats.forEach((s) => {
+      const playerId = s.playerId;
+      if (!totals[playerId]) {
+        const player = playerMap.get(playerId);
+        totals[playerId] = {
+          playerId,
+          playerName: player ? player.name : "Неизвестно",
+          matches: 0,
+          goals: 0,
+          assists: 0,
+          ga: 0,
+        };
+      }
+      const t = totals[playerId];
+      const matches = numberOrZero(s.matches);
+      const goals = numberOrZero(s.goals);
+      const assists = numberOrZero(s.assists);
+      t.matches += matches;
+      t.goals += goals;
+      t.assists += assists;
+      t.ga += goals + assists;
+    });
+
+    let rows = Object.values(totals).map((t) => {
+      const gpg = t.matches > 0 ? t.goals / t.matches : 0;
+      const apg = t.matches > 0 ? t.assists / t.matches : 0;
+      const gapg = t.matches > 0 ? t.ga / t.matches : 0;
+      return {
+        ...t,
+        goalsPerGame: gpg,
+        assistsPerGame: apg,
+        gaPerGame: gapg,
+      };
+    });
+
+    const { key, direction } = sortState.totalTable;
+    rows.sort((a, b) =>
+      compareValues(a[key], b[key], key === "playerName", direction)
+    );
+
+    // Диапазоны для цветовой индикации
+    const metricKeys = [
+      "matches",
+      "goals",
+      "assists",
+      "ga",
+      "goalsPerGame",
+      "assistsPerGame",
+      "gaPerGame",
+    ];
+    const ranges = computeMetricRanges(rows, metricKeys);
+
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const tbody = document.createElement("tbody");
+
+    const headers = [
+      { key: "playerName", label: "Игрок", numeric: false, metric: false },
+      { key: "matches", label: "Матчи", numeric: true, metric: true },
+      { key: "goals", label: "Голы", numeric: true, metric: true },
+      { key: "assists", label: "Пасы", numeric: true, metric: true },
+      { key: "ga", label: "Г+П", numeric: true, metric: true },
+      { key: "goalsPerGame", label: "Голы / игру", numeric: true, metric: true, format: "fixed2" },
+      { key: "assistsPerGame", label: "Пасы / игру", numeric: true, metric: true, format: "fixed2" },
+      { key: "gaPerGame", label: "Г+П / игру", numeric: true, metric: true, format: "fixed2" },
+    ];
+
+    const trHead = document.createElement("tr");
+    headers.forEach((h) => {
+      const th = document.createElement("th");
+      th.textContent = h.label;
+      th.dataset.key = h.key;
+      th.dataset.numeric = h.numeric ? "1" : "0";
+      th.classList.add("sortable");
+      if (sortState.totalTable.key === h.key) {
+        th.classList.add(
+          sortState.totalTable.direction === "asc" ? "sort-asc" : "sort-desc"
+        );
+      }
+      th.addEventListener("click", () => {
+        updateSort("totalTable", h.key);
+        renderTotalTable();
+      });
+      trHead.appendChild(th);
+    });
+    thead.appendChild(trHead);
+
+    rows.forEach((row) => {
+      const tr = document.createElement("tr");
+      headers.forEach((h) => {
+        const td = document.createElement("td");
+        let value = row[h.key];
+
+        if (h.format === "fixed2") {
+          value = Number(value).toFixed(2);
+        }
+
+        if (h.key === "playerName") {
+          td.style.textAlign = "left";
+        }
+
+        if (h.metric) {
+          const cls = getMetricClass(h.key, row[h.key], ranges);
+          if (cls) td.classList.add(cls);
+        }
+
+        td.textContent = value;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    wrapper.appendChild(table);
+  }
+
+  function compareValues(a, b, isString, direction) {
+    let res;
+    if (isString) {
+      res = String(a).localeCompare(String(b), "ru");
+    } else {
+      const na = Number(a);
+      const nb = Number(b);
+      res = na === nb ? 0 : na < nb ? -1 : 1;
+    }
+    return direction === "asc" ? res : -res;
+  }
+
+  function updateSort(tableName, key) {
+    const sort = sortState[tableName];
+    if (sort.key === key) {
+      sort.direction = sort.direction === "asc" ? "desc" : "asc";
+    } else {
+      sort.key = key;
+      sort.direction = key === "playerName" ? "asc" : "desc";
+    }
+  }
+
+  // ----- График -----
+  function showChart() {
+    const playerId = document.getElementById("chartPlayer").value;
+    const metric = document.getElementById("chartMetric").value;
+    const messageEl = document.getElementById("chartMessage");
+
+    if (!playerId) {
+      messageEl.textContent =
+        "Сначала добавь игроков и выбери конкретного игрока.";
+      return;
+    }
+
+    const player = getPlayerById(playerId);
+    if (!player) {
+      messageEl.textContent = "Игрок не найден в базе.";
+      return;
+    }
+
+    const playerStats = stats.filter((s) => s.playerId === playerId);
+    if (!playerStats.length) {
+      messageEl.textContent = "Для этого игрока пока нет статистики.";
+      if (playerChart) {
+        playerChart.destroy();
+        playerChart = null;
+      }
+      return;
+    }
+
+    // Группируем по сезонам
+    const seasonsMap = {};
+    playerStats.forEach((s) => {
+      const season = s.season;
+      if (!seasonsMap[season]) {
+        seasonsMap[season] = {
+          matches: 0,
+          goals: 0,
+          assists: 0,
+          ga: 0,
+          ratingSum: 0,
+          ratingCount: 0,
+        };
+      }
+      const m = seasonsMap[season];
+      const matches = numberOrZero(s.matches);
+      const goals = numberOrZero(s.goals);
+      const assists = numberOrZero(s.assists);
+      const rating = numberOrZero(s.rating);
+
+      m.matches += matches;
+      m.goals += goals;
+      m.assists += assists;
+      m.ga += goals + assists;
+      if (!isNaN(rating) && rating > 0) {
+        m.ratingSum += rating;
+        m.ratingCount += 1;
+      }
+    });
+
+    const seasons = Object.keys(seasonsMap)
+      .map((s) => parseInt(s, 10))
+      .sort((a, b) => a - b);
+
+    const labels = seasons.map((s) => "Сезон " + s);
+    const data = seasons.map((s) => {
+      const m = seasonsMap[s];
+      switch (metric) {
+        case "matches":
+          return m.matches;
+        case "goals":
+          return m.goals;
+        case "assists":
+          return m.assists;
+        case "ga":
+          return m.ga;
+        case "rating":
+          return m.ratingCount ? m.ratingSum / m.ratingCount : 0;
+        default:
+          return 0;
+      }
+    });
+
+    const metricNameMap = {
+      goals: "Голы",
+      assists: "Голевые передачи",
+      ga: "Гол + пас",
+      matches: "Матчи",
+      rating: "Оценка",
+    };
+
+    const ctx = document.getElementById("playerChartCanvas").getContext("2d");
+    if (playerChart) {
+      playerChart.destroy();
+    }
+
+    playerChart = new Chart(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: `${player.name}: ${metricNameMap[metric]}`,
+            data,
+            tension: 0.25,
+            fill: true,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            ticks: { color: "#cbd5f5", font: { size: 11 } },
+            grid: { display: false },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: "#cbd5f5", font: { size: 11 } },
+            grid: { color: "rgba(148, 163, 184, 0.2)" },
+          },
+        },
+        plugins: {
+          legend: {
+            labels: { color: "#e5e7eb", font: { size: 11 } },
+          },
+          tooltip: {
+            callbacks: {
+              label: function (ctx) {
+                const v = ctx.parsed.y;
+                return `${v} — ${metricNameMap[metric]}`;
+              },
+            },
+          },
+        },
+      },
+    });
+
+    messageEl.textContent = `График для игрока ${player.name} по показателю «${metricNameMap[metric]}».`;
+  }
+
+  // ----- Обработчики форм -----
+  function initForms() {
+    const playerForm = document.getElementById("playerForm");
+    const statsForm = document.getElementById("statsForm");
+    const playerStatus = document.getElementById("playerStatus");
+    const statsStatus = document.getElementById("statsStatus");
+    const exportBtn = document.getElementById("exportBtn");
+    const importFileInput = document.getElementById("importFile");
+
+    playerForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const nameInput = document.getElementById("playerName");
+      const name = nameInput.value.trim();
+      if (!name) {
+        playerStatus.textContent = "Имя игрока не может быть пустым.";
+        playerStatus.className = "status error";
+        return;
+      }
+      const exists = players.some(
+        (p) => p.name.toLowerCase() === name.toLowerCase()
+      );
+      if (exists) {
+        playerStatus.textContent =
+          "Игрок с таким именем уже есть в базе.";
+        playerStatus.className = "status error";
+        return;
+      }
+      const newPlayer = { id: createId(), name };
+      players.push(newPlayer);
+      savePlayers();
+      renderPlayers();
+      nameInput.value = "";
+      playerStatus.textContent = "Игрок добавлен в базу.";
+      playerStatus.className = "status success";
+    });
+
+    statsForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const season = parseInt(document.getElementById("season").value, 10);
+      const playerId = document.getElementById("statsPlayer").value;
+      const matches = numberOrZero(document.getElementById("matches").value);
+      const goals = numberOrZero(document.getElementById("goals").value);
+      const assists = numberOrZero(document.getElementById("assists").value);
+      const rating = numberOrZero(document.getElementById("rating").value);
+
+      if (!playerId) {
+        statsStatus.textContent = "Сначала выбери игрока.";
+        statsStatus.className = "status error";
+        return;
+      }
+
+      if (
+        isNaN(season) ||
+        (matches === 0 && goals === 0 && assists === 0 && rating === 0)
+      ) {
+        statsStatus.textContent =
+          "Заполни хотя бы один числовой показатель (матчи, голы, пасы или оценка).";
+        statsStatus.className = "status error";
+        return;
+      }
+
+      const entry = {
+        id: createId(),
+        season,
+        playerId,
+        matches,
+        goals,
+        assists,
+        rating,
+      };
+      stats.push(entry);
+      saveStats();
+
+      renderSeasonTable();
+      renderTotalTable();
+      statsStatus.textContent = "Статистика сезона сохранена.";
+      statsStatus.className = "status success";
+    });
+
+    document
+      .getElementById("seasonFilter")
+      .addEventListener("change", () => renderSeasonTable());
+
+    document
+      .getElementById("showChartBtn")
+      .addEventListener("click", showChart);
+
+    if (exportBtn) {
+      exportBtn.addEventListener("click", exportData);
+    }
+
+    if (importFileInput) {
+      importFileInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        importDataFromFile(file);
+        // сбрасываем input, чтобы при повторном выборе того же файла событие сработало снова
+        e.target.value = "";
+      });
+    }
+  }
+
+  // ----- Инициализация -----
+  document.addEventListener("DOMContentLoaded", () => {
+    loadFromStorage();
+    populateSeasonSelects();
+    renderPlayers();
+    renderSeasonTable();
+    renderTotalTable();
+    initForms();
+  });
+</script>
+</body>
+</html>
