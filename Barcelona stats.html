@@ -97,10 +97,9 @@
 
     main {
       padding: 20px;
-      max-width: 1400px; /* расширили */
+      max-width: 1400px;
       margin: 0 auto 40px;
       display: grid;
-      /* правая колонка шире левой */
       grid-template-columns: minmax(0, 1fr) minmax(0, 2.1fr);
       gap: 20px;
     }
@@ -310,13 +309,13 @@
       border: 1px solid var(--border-soft);
       margin-top: 8px;
       background: rgba(2, 11, 26, 0.95);
-      overflow-x: auto;  /* горизонтальная прокрутка при необходимости */
+      overflow-x: auto;
       overflow-y: hidden;
     }
 
     table {
       width: 100%;
-      min-width: 900px; /* чтобы столбцы не сжимались слишком сильно */
+      min-width: 900px;
       border-collapse: collapse;
       font-size: 0.8rem;
     }
@@ -438,7 +437,6 @@
       text-shadow: 0 0 4px rgba(34, 197, 94, 0.3);
     }
 
-    /* Для инпута файла */
     .file-input {
       font-size: 0.78rem;
       color: var(--text-muted);
@@ -461,9 +459,9 @@
 </header>
 
 <main>
-  <!-- Левая колонка: ввод игроков и статистики -->
+  <!-- Левая колонка -->
   <section class="section-grid">
-    <!-- Блок игроков -->
+    <!-- Игроки -->
     <div class="card">
       <div class="card-header">
         <div class="card-title">
@@ -498,7 +496,7 @@
       <div class="status" id="playerStatus"></div>
     </div>
 
-    <!-- Блок добавления статистики -->
+    <!-- Сезонная статистика -->
     <div class="card">
       <div class="card-header">
         <div class="card-title">
@@ -574,18 +572,18 @@
     </div>
   </section>
 
-  <!-- Правая колонка: таблицы и график -->
+  <!-- Правая колонка -->
   <section class="section-grid">
     <!-- Статистика по сезонам -->
     <div class="card">
       <div class="card-header">
         <div class="card-title">
           📅 Статистика по сезонам
-          <span class="card-pill">Матчи · Голы · Гол+Пас · Оценка · Импакт</span>
+          <span class="card-pill">Матчи · Голы · Г+П · Оценка · Импакт</span>
         </div>
       </div>
       <p class="card-description">
-        Таблица показывает статистику игроков по сезонам. Импакт учитывает позицию (нап/пз/защ). Нажимай на заголовок столбца, чтобы сортировать.
+        Импакт делится на <b>за игру</b> и <b>за сезон</b>. За сезон учитывает объём матчей, но не линейно. Нажимай на заголовок столбца, чтобы сортировать.
       </p>
       <div class="filters-row">
         <div class="form-group" style="margin-bottom:0; max-width:160px;">
@@ -623,7 +621,7 @@
       </div>
     </div>
 
-    <!-- График динамики -->
+    <!-- График -->
     <div class="card" style="grid-column: 1 / -1;">
       <div class="card-header">
         <div class="card-title">
@@ -632,14 +630,14 @@
         </div>
       </div>
       <p class="card-description">
-        Выбери игрока и показатель (включая импакт), чтобы увидеть изменение по сезонам.
+        Выбери игрока и показатель (включая импакт / игру и за сезон), чтобы увидеть изменение по сезонам.
       </p>
       <div class="filters-row">
         <div class="form-group" style="min-width:160px;">
           <label for="chartPlayer">Игрок</label>
           <select id="chartPlayer"></select>
         </div>
-        <div class="form-group" style="min-width:170px;">
+        <div class="form-group" style="min-width:190px;">
           <label for="chartMetric">Показатель</label>
           <select id="chartMetric">
             <option value="goals">Голы</option>
@@ -647,7 +645,8 @@
             <option value="ga">Гол + пас</option>
             <option value="matches">Матчи</option>
             <option value="rating">Оценка</option>
-            <option value="impact">Импакт (с учётом позиции)</option>
+            <option value="impactPg">Импакт / игру</option>
+            <option value="impactSeason">Импакт за сезон</option>
           </select>
         </div>
         <div class="form-group" style="flex:0 0 auto; align-self:flex-end;">
@@ -663,13 +662,11 @@
 </main>
 
 <script>
-  // ----- Константы localStorage -----
   const STORAGE_KEYS = {
     players: "fc26_players",
     stats: "fc26_stats",
   };
 
-  // Роли игроков
   const ROLE_TYPES = {
     FORWARD: "forward",
     MIDFIELD: "midfield",
@@ -688,27 +685,23 @@
     defender: "Защитник",
   };
 
-  // Коэффициенты импакта по ролям (на основе твоей идеи:
-  // для защитников и полузащитников множители выше)
+  // Коэффициенты по ролям (как обсуждали)
   const ROLE_COEFFICIENTS = {
     forward:   { goals: 1, assists: 1,   rating: 1   },
     midfield:  { goals: 3, assists: 2,   rating: 1.2 },
     defender:  { goals: 5, assists: 3,   rating: 1.5 },
   };
 
-  // ----- Состояние в памяти -----
   let players = [];
   let stats = [];
 
-  // Состояние сортировки
   const sortState = {
-    seasonTable: { key: "season", direction: "asc" },
+    seasonTable: { key: "seasonImpact", direction: "desc" },
     totalTable: { key: "goals", direction: "desc" },
   };
 
   let playerChart = null;
 
-  // ----- Работа с localStorage -----
   function loadFromStorage() {
     try {
       const playersRaw = localStorage.getItem(STORAGE_KEYS.players);
@@ -730,7 +723,6 @@
     localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(stats));
   }
 
-  // ----- Вспомогательные функции -----
   function createId() {
     return Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
   }
@@ -765,7 +757,6 @@
     return player.role;
   }
 
-  // Диапазоны для цветовой индикации
   function computeMetricRanges(rows, metricKeys) {
     const ranges = {};
     metricKeys.forEach((key) => {
@@ -793,19 +784,18 @@
     const max = range.max;
     const v = Number(value);
     if (isNaN(v) || max === min) return "";
-    const norm = (v - min) / (max - min); // 0..1
+    const norm = (v - min) / (max - min);
     if (norm < 0.33) return "metric-low";
     if (norm < 0.67) return "metric-mid";
     return "metric-high";
   }
 
-  // ----- Экспорт / импорт -----
   function exportData() {
     const data = {
       players,
       stats,
       exportedAt: new Date().toISOString(),
-      version: "1.1",
+      version: "1.2",
     };
     const json = JSON.stringify(data, null, 2);
     const blob = new Blob([json], { type: "application/json" });
@@ -855,7 +845,6 @@
     reader.readAsText(file, "utf-8");
   }
 
-  // ----- Удаление -----
   function deletePlayer(playerId) {
     const player = getPlayerById(playerId);
     const name = player ? player.name : "игрока";
@@ -909,7 +898,6 @@
     }
   }
 
-  // ----- Рендер UI -----
   function populateSeasonSelects() {
     const seasonSelect = document.getElementById("season");
     const seasonFilter = document.getElementById("seasonFilter");
@@ -1045,7 +1033,12 @@
 
       const roleKey = getPlayerRole(player);
       const coeff = ROLE_COEFFICIENTS[roleKey] || ROLE_COEFFICIENTS.forward;
-      const impact = goals * coeff.goals + assists * coeff.assists + rating * coeff.rating;
+
+      // Импакт за игру (чистая плотность)
+      const impactPerGame =
+        gpg * coeff.goals +
+        apg * coeff.assists +
+        rating * coeff.rating;
 
       return {
         season: s.season,
@@ -1061,7 +1054,9 @@
         assistsPerGame: apg,
         gaPerGame: gapg,
         rating,
-        impact,
+        impactPerGameRaw: impactPerGame, // пока без учёта матчей
+        impactPerGame: 0,
+        seasonImpact: 0,
       };
     });
 
@@ -1077,6 +1072,20 @@
       wrapper.appendChild(empty);
       return;
     }
+
+    // Находим максимум матчей среди текущих строк
+    let maxMatches = 0;
+    rows.forEach((r) => {
+      if (r.matches > maxMatches) maxMatches = r.matches;
+    });
+    if (maxMatches <= 0) maxMatches = 1;
+
+    // Считаем окончательный импакт / игру и за сезон
+    rows.forEach((r) => {
+      r.impactPerGame = r.impactPerGameRaw;
+      const factor = 0.5 + 0.5 * (r.matches / maxMatches); // 0.5..1
+      r.seasonImpact = r.impactPerGame * factor;
+    });
 
     const { key, direction } = sortState.seasonTable;
     rows.sort((a, b) =>
@@ -1097,7 +1106,8 @@
       "assistsPerGame",
       "gaPerGame",
       "rating",
-      "impact",
+      "impactPerGame",
+      "seasonImpact",
     ];
     const ranges = computeMetricRanges(rows, metricKeys);
 
@@ -1117,7 +1127,8 @@
       { key: "assistsPerGame", label: "Пасы / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
       { key: "gaPerGame", label: "Г+П / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
       { key: "rating", label: "Оценка", numeric: true, sortable: true, metric: true, format: "fixed2" },
-      { key: "impact", label: "Импакт", numeric: true, sortable: true, metric: true, format: "fixed2" },
+      { key: "impactPerGame", label: "Импакт / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
+      { key: "seasonImpact", label: "Импакт сезон", numeric: true, sortable: true, metric: true, format: "fixed2" },
       { key: "actions", label: "", numeric: false, sortable: false, metric: false },
     ];
 
@@ -1352,7 +1363,6 @@
     }
   }
 
-  // ----- График -----
   function showChart() {
     const playerId = document.getElementById("chartPlayer").value;
     const metric = document.getElementById("chartMetric").value;
@@ -1413,25 +1423,49 @@
       .map((s) => parseInt(s, 10))
       .sort((a, b) => a - b);
 
+    // максимум матчей по сезонам этого игрока
+    let maxMatches = 0;
+    seasons.forEach((s) => {
+      const m = seasonsMap[s];
+      if (m.matches > maxMatches) maxMatches = m.matches;
+    });
+    if (maxMatches <= 0) maxMatches = 1;
+
     const labels = seasons.map((s) => "Сезон " + s);
+    const roleKey = getPlayerRole(player);
+    const coeff = ROLE_COEFFICIENTS[roleKey] || ROLE_COEFFICIENTS.forward;
+
     const data = seasons.map((s) => {
       const m = seasonsMap[s];
+      const matches = m.matches;
+      const goals = m.goals;
+      const assists = m.assists;
+      const ga = m.ga;
+      const avgRating = m.ratingCount ? m.ratingSum / m.ratingCount : 0;
+      const gpg = matches > 0 ? goals / matches : 0;
+      const apg = matches > 0 ? assists / matches : 0;
+
+      const impactPg =
+        gpg * coeff.goals +
+        apg * coeff.assists +
+        avgRating * coeff.rating;
+
       switch (metric) {
         case "matches":
-          return m.matches;
+          return matches;
         case "goals":
-          return m.goals;
+          return goals;
         case "assists":
-          return m.assists;
+          return assists;
         case "ga":
-          return m.ga;
+          return ga;
         case "rating":
-          return m.ratingCount ? m.ratingSum / m.ratingCount : 0;
-        case "impact": {
-          const roleKey = getPlayerRole(player);
-          const coeff = ROLE_COEFFICIENTS[roleKey] || ROLE_COEFFICIENTS.forward;
-          const avgRating = m.ratingCount ? m.ratingSum / m.ratingCount : 0;
-          return m.goals * coeff.goals + m.assists * coeff.assists + avgRating * coeff.rating;
+          return avgRating;
+        case "impactPg":
+          return impactPg;
+        case "impactSeason": {
+          const factor = 0.5 + 0.5 * (matches / maxMatches);
+          return impactPg * factor;
         }
         default:
           return 0;
@@ -1444,7 +1478,8 @@
       ga: "Гол + пас",
       matches: "Матчи",
       rating: "Оценка",
-      impact: "Импакт (с учётом позиции)",
+      impactPg: "Импакт / игру",
+      impactSeason: "Импакт за сезон",
     };
 
     const ctx = document.getElementById("playerChartCanvas").getContext("2d");
@@ -1498,7 +1533,6 @@
     messageEl.textContent = `График для игрока ${player.name} по показателю «${metricNameMap[metric]}».`;
   }
 
-  // ----- Обработчики форм -----
   function initForms() {
     const playerForm = document.getElementById("playerForm");
     const statsForm = document.getElementById("statsForm");
@@ -1602,7 +1636,6 @@
     }
   }
 
-  // ----- Инициализация -----
   document.addEventListener("DOMContentLoaded", () => {
     loadFromStorage();
     populateSeasonSelects();
