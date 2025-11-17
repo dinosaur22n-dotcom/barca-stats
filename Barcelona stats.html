@@ -157,6 +157,11 @@
       gap: 12px;
     }
 
+    .analytics-wide {
+      grid-column: 1 / -1; /* секция займет обе колонки грида main */
+    }
+
+    
     .form-row {
       display: flex;
       gap: 10px;
@@ -927,7 +932,8 @@
     </div>
 
     <!-- Аналитика сезона + команда сезона -->
-    <div class="card" id="seasonInsightsCard" style="grid-column: 1 / -1;">
+    <section class="section-grid analytics-wide">
+    <div class="card" id="seasonInsightsCard">
       <div class="card-header">
         <div class="card-title">
           🎯 Аналитика сезона и команда
@@ -940,44 +946,6 @@
       <div id="seasonInsightsContent" class="season-insights">
         <!-- наполняется скриптом -->
       </div>
-    </div>
-
-    <!-- График -->
-    <div class="card" style="grid-column: 1 / -1;">
-      <div class="card-header">
-        <div class="card-title">
-          📈 График игрока по сезонам
-          <span class="card-pill">Динамика показателей</span>
-        </div>
-      </div>
-      <p class="card-description">
-        Выбери игрока и показатель (включая импакт / игру и за сезон), чтобы увидеть изменение по сезонам.
-      </p>
-      <div class="filters-row">
-        <div class="form-group" style="min-width:160px;">
-          <label for="chartPlayer">Игрок</label>
-          <select id="chartPlayer"></select>
-        </div>
-        <div class="form-group" style="min-width:190px;">
-          <label for="chartMetric">Показатель</label>
-          <select id="chartMetric">
-            <option value="goals">Голы</option>
-            <option value="assists">Голевые передачи</option>
-            <option value="ga">Гол + пас</option>
-            <option value="matches">Матчи</option>
-            <option value="rating">Оценка</option>
-            <option value="impactPg">Импакт / игру</option>
-            <option value="impactSeason">Импакт за сезон</option>
-          </select>
-        </div>
-        <div class="form-group" style="flex:0 0 auto; align-self:flex-end;">
-          <button type="button" id="showChartBtn">Показать график</button>
-        </div>
-      </div>
-      <div class="chart-container">
-        <canvas id="playerChartCanvas"></canvas>
-      </div>
-      <div id="chartMessage">Выбери игрока и показатель, затем нажми «Показать график».</div>
     </div>
   </section>
 </main>
@@ -1211,7 +1179,7 @@
     renderTotalTable();
     renderSeasonInsights();
 
-    const chartPlayerSelect = document.getElementById("chartPlayer");
+       const chartPlayerSelect = document.getElementById("chartPlayer");
     if (chartPlayerSelect && chartPlayerSelect.value === playerId) {
       chartPlayerSelect.value = "";
       if (playerChart) {
@@ -1219,9 +1187,11 @@
         playerChart = null;
       }
       const msg = document.getElementById("chartMessage");
-      msg.textContent = "Игрок удалён. Выбери другого игрока для графика.";
+      if (msg) {
+        msg.textContent = "Игрок удалён. Выбери другого игрока для графика.";
+      }
     }
-  }
+
 
   function deleteSeasonStats(playerId, season) {
     const player = getPlayerById(playerId);
@@ -1280,11 +1250,13 @@
   function renderPlayers() {
     const playersList = document.getElementById("playersList");
     const statsPlayerSelect = document.getElementById("statsPlayer");
-    const chartPlayerSelect = document.getElementById("chartPlayer");
+    const chartPlayerSelect = document.getElementById("chartPlayer"); // теперь может быть null
 
     playersList.innerHTML = "";
     statsPlayerSelect.innerHTML = "";
-    chartPlayerSelect.innerHTML = "";
+    if (chartPlayerSelect) {
+      chartPlayerSelect.innerHTML = "";
+    }
 
     if (!players.length) {
       const placeholder = document.createElement("div");
@@ -1297,10 +1269,12 @@
       noneOpt.textContent = "Сначала добавь игроков";
       statsPlayerSelect.appendChild(noneOpt);
 
-      const noneOpt2 = document.createElement("option");
-      noneOpt2.value = "";
-      noneOpt2.textContent = "Нет игроков";
-      chartPlayerSelect.appendChild(noneOpt2);
+      if (chartPlayerSelect) {
+        const noneOpt2 = document.createElement("option");
+        noneOpt2.value = "";
+        noneOpt2.textContent = "Нет игроков";
+        chartPlayerSelect.appendChild(noneOpt2);
+      }
       return;
     }
 
@@ -1311,35 +1285,7 @@
         const chip = document.createElement("div");
         chip.className = "player-chip";
         chip.dataset.playerId = p.id;
-
-        const initials = document.createElement("div");
-        initials.className = "player-initials";
-        initials.textContent = getInitials(p.name);
-
-        const roleSpan = document.createElement("span");
-        const roleKey = getPlayerRole(p);
-        roleSpan.className = "badge";
-        roleSpan.textContent = ROLE_LABELS_SHORT[roleKey] || "РОЛЬ";
-
-        const span = document.createElement("span");
-        span.textContent = p.name;
-
-        const removeBtn = document.createElement("button");
-        removeBtn.type = "button";
-        removeBtn.textContent = "✕";
-        removeBtn.className = "button-secondary";
-        removeBtn.style.padding = "0 6px";
-        removeBtn.style.fontSize = "0.75rem";
-        removeBtn.style.lineHeight = "1.2";
-        removeBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          deletePlayer(p.id);
-        });
-
-        chip.appendChild(initials);
-        chip.appendChild(roleSpan);
-        chip.appendChild(span);
-        chip.appendChild(removeBtn);
+        ...
         playersList.appendChild(chip);
 
         const opt1 = document.createElement("option");
@@ -1347,12 +1293,15 @@
         opt1.textContent = p.name;
         statsPlayerSelect.appendChild(opt1);
 
-        const opt2 = document.createElement("option");
-        opt2.value = p.id;
-        opt2.textContent = p.name;
-        chartPlayerSelect.appendChild(opt2);
+        if (chartPlayerSelect) {
+          const opt2 = document.createElement("option");
+          opt2.value = p.id;
+          opt2.textContent = p.name;
+          chartPlayerSelect.appendChild(opt2);
+        }
       });
   }
+
 
 function renderSeasonTable() {
   const wrapper = document.getElementById("seasonTableWrapper");
@@ -2428,9 +2377,11 @@ function renderSeasonTable() {
         renderSeasonInsights();
       });
 
-    document
-      .getElementById("showChartBtn")
-      .addEventListener("click", showChart);
+        const showChartBtn = document.getElementById("showChartBtn");
+    if (showChartBtn) {
+      showChartBtn.addEventListener("click", showChart);
+    }
+
 
     if (exportBtn) {
       exportBtn.addEventListener("click", exportData);
