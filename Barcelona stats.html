@@ -421,6 +421,11 @@
       text-align: left;
     }
 
+th.sticky-col-1,
+td.sticky-col-1 {
+  text-align: center;
+}
+    
     th {
       font-weight: 600;
       cursor: pointer;
@@ -1412,6 +1417,7 @@ function renderSeasonTable() {
     return;
   }
 
+  // считаем импакт за сезон
   let maxMatches = 0;
   rows.forEach((r) => {
     if (r.matches > maxMatches) maxMatches = r.matches;
@@ -1424,6 +1430,7 @@ function renderSeasonTable() {
     r.seasonImpact = r.impactPerGame * factor;
   });
 
+  // сортировка
   const { key, direction } = sortState.seasonTable;
   rows.sort((a, b) =>
     compareValues(
@@ -1434,6 +1441,7 @@ function renderSeasonTable() {
     )
   );
 
+  // диапазоны метрик
   const metricKeys = [
     "matches",
     "goals",
@@ -1452,8 +1460,9 @@ function renderSeasonTable() {
   const thead = document.createElement("thead");
   const tbody = document.createElement("tbody");
 
+  // ✨ ВАЖНО: добавили index и sticky-классы будем навешивать по key
   const headers = [
-    { key: "season", label: "Сезон", numeric: true, sortable: true, metric: false },
+    { key: "index", label: "№", numeric: true, sortable: false, metric: false },
     { key: "season", label: "Сезон", numeric: true, sortable: true, metric: false },
     { key: "playerName", label: "Игрок", numeric: false, sortable: true, metric: false },
     { key: "roleLabel", label: "Роль", numeric: false, sortable: true, metric: false },
@@ -1470,6 +1479,7 @@ function renderSeasonTable() {
     { key: "actions", label: "", numeric: false, sortable: false, metric: false },
   ];
 
+  // заголовок
   const trHead = document.createElement("tr");
   headers.forEach((h) => {
     const th = document.createElement("th");
@@ -1500,14 +1510,9 @@ function renderSeasonTable() {
 
     trHead.appendChild(th);
   });
-
-    }
-
-    trHead.appendChild(th);
-  });
   thead.appendChild(trHead);
 
-  // 👇 здесь была проблема — цикл не закрывался и tr не добавлялся в tbody
+  // строки
   rows.forEach((row, rowIndex) => {
     const tr = document.createElement("tr");
 
@@ -1568,7 +1573,6 @@ function renderSeasonTable() {
     tbody.appendChild(tr);
   });
 
-
   table.appendChild(thead);
   table.appendChild(tbody);
   wrapper.appendChild(table);
@@ -1576,6 +1580,7 @@ function renderSeasonTable() {
   // обновить аналитический блок
   renderSeasonInsights(rows);
 }
+
 
 
   function renderTotalTable() {
