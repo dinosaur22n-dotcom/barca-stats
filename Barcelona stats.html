@@ -1006,13 +1006,32 @@
     }
   }
 
-  function savePlayers() {
+function savePlayers() {
+  try {
     localStorage.setItem(STORAGE_KEYS.players, JSON.stringify(players));
+  } catch (e) {
+    console.error("Ошибка сохранения игроков в localStorage", e);
+    alert(
+      "Не удалось сохранить игроков в localStorage.\n" +
+      "Скорее всего, переполнено хранилище (слишком много данных/картинок).\n\n" +
+      "Игроки появятся в списке и будут работать до перезагрузки страницы, " +
+      "но лучше сделать экспорт и удалить часть игроков или фото."
+    );
   }
+}
 
-  function saveStats() {
+function saveStats() {
+  try {
     localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(stats));
+  } catch (e) {
+    console.error("Ошибка сохранения статистики в localStorage", e);
+    alert(
+      "Не удалось сохранить статистику в localStorage.\n" +
+      "Скорее всего, переполнено хранилище."
+    );
   }
+}
+
 
   function createId() {
     return Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
