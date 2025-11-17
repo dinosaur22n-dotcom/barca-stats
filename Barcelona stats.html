@@ -1352,8 +1352,7 @@ function renderSeasonTable() {
   if (!stats.length) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
-    empty.textContent =
-      "Нет статистики. Добавь хотя бы одну запись сезона.";
+    empty.textContent = "Нет статистики. Добавь хотя бы одну запись сезона.";
     wrapper.appendChild(empty);
     return;
   }
@@ -1361,6 +1360,7 @@ function renderSeasonTable() {
   const seasonFilter = document.getElementById("seasonFilter").value;
   const playerMap = getPlayerMap();
 
+  // 1) собираем сырые строки по записям stats
   let rows = stats.map((s) => {
     const player = playerMap.get(s.playerId);
     const goals = numberOrZero(s.goals);
@@ -1375,7 +1375,7 @@ function renderSeasonTable() {
     const roleKey = getPlayerRole(player);
     const coeff = ROLE_COEFFICIENTS[roleKey] || ROLE_COEFFICIENTS.forward;
 
-    const impactPerGame =
+    const impactPerGameRaw =
       gpg * coeff.goals +
       apg * coeff.assists +
       rating * coeff.rating;
@@ -1394,12 +1394,14 @@ function renderSeasonTable() {
       assistsPerGame: apg,
       gaPerGame: gapg,
       rating,
-      impactPerGameRaw: impactPerGame,
+      impactPerGameRaw,
       impactPerGame: 0,
       seasonImpact: 0,
+      totalIndex: 0,   // наш новый супер-показатель
     };
   });
 
+  // фильтр по сезону
   if (seasonFilter !== "all") {
     const seasonNum = parseInt(seasonFilter, 10);
     rows = rows.filter((r) => r.season === seasonNum);
@@ -1413,7 +1415,7 @@ function renderSeasonTable() {
     return;
   }
 
-  // maxMatches для импакта за сезон
+  // 2) считаем сезонный импакт (как раньше)
   let maxMatches = 0;
   rows.forEach((r) => {
     if (r.matches > maxMatches) maxMatches = r.matches;
@@ -1426,6 +1428,54 @@ function renderSeasonTable() {
     r.seasonImpact = r.impactPerGame * factor;
   });
 
+  // 3) нормализация основных метрик (для расчёта totalIndex)
+  const baseMetricKeys = [
+    "matches",
+    "ga",
+    "goalsPerGame",
+    "assistsPerGame",
+    "gaPerGame",
+    "rating",
+    "impactPerGame",
+    "seasonImpact",
+  ];
+  const baseRanges = computeMetricRanges(rows, baseMetricKeys);
+
+  function norm(value, key) {
+    const r = baseRanges[key];
+    if (!r || r.max === r.min) return 0.5;
+    const v = Number(value) || 0;
+    return (v - r.min) / (r.max - r.min); // 0..1
+  }
+
+  // 4) считаем под-индексы и общий индекс totalIndex
+  rows.forEach((r) => {
+    const V =
+      0.5 * norm(r.matches, "matches") +
+      0.5 * norm(r.ga,      "ga");
+
+    const E =
+      ( norm(r.goalsPerGame,   "goalsPerGame") +
+        norm(r.assistsPerGame, "assistsPerGame") +
+        norm(r.gaPerGame,      "gaPerGame")
+      ) / 3;
+
+    const Q = norm(r.rating, "rating");
+
+    const I =
+      0.4 * norm(r.impactPerGame, "impactPerGame") +
+      0.6 * norm(r.seasonImpact,  "seasonImpact");
+
+    const totalIndex =
+      0.25 * V +
+      0.25 * E +
+      0.15 * Q +
+      0.35 * I;
+
+    r.totalIndex = totalIndex * 100; // 0–100, удобнее на глаз
+  });
+
+  // 5) сортировка по текущему стейту
   const { key, direction } = sortState.seasonTable;
   rows.sort((a, b) =>
     compareValues(
@@ -1436,6 +1486,7 @@ function renderSeasonTable() {
     )
   );
 
+  // 6) диапазоны для подсветки (включая totalIndex)
   const metricKeys = [
     "matches",
     "goals",
@@ -1447,29 +1498,32 @@ function renderSeasonTable() {
     "rating",
     "impactPerGame",
     "seasonImpact",
+    "totalIndex",
   ];
   const ranges = computeMetricRanges(rows, metricKeys);
 
+  // 7) сборка таблицы
   const table = document.createElement("table");
   const thead = document.createElement("thead");
   const tbody = document.createElement("tbody");
 
   const headers = [
-    { key: "index",        label: "№",          numeric: true,  sortable: false, metric: false },
-    { key: "season",       label: "Сезон",      numeric: true,  sortable: true,  metric: false },
-    { key: "playerName",   label: "Игрок",      numeric: false, sortable: true,  metric: false },
-    { key: "roleLabel",    label: "Роль",       numeric: false, sortable: true,  metric: false },
-    { key: "matches",      label: "Матчи",      numeric: true,  sortable: true,  metric: true },
-    { key: "goals",        label: "Голы",       numeric: true,  sortable: true,  metric: true },
-    { key: "assists",      label: "Пасы",       numeric: true,  sortable: true,  metric: true },
-    { key: "ga",           label: "Г+П",        numeric: true,  sortable: true,  metric: true },
-    { key: "goalsPerGame", label: "Голы / игру",numeric: true,  sortable: true,  metric: true, format: "fixed2" },
-    { key: "assistsPerGame",label:"Пасы / игру",numeric: true,  sortable: true,  metric: true, format: "fixed2" },
-    { key: "gaPerGame",    label: "Г+П / игру", numeric: true,  sortable: true,  metric: true, format: "fixed2" },
-    { key: "rating",       label: "Оценка",     numeric: true,  sortable: true,  metric: true, format: "fixed2" },
-    { key: "impactPerGame",label: "Импакт / игру", numeric:true,sortable:true,   metric:true,  format: "fixed2" },
-    { key: "seasonImpact", label: "Импакт сезон", numeric:true, sortable:true,   metric:true,  format: "fixed2" },
-    { key: "actions",      label: "",           numeric: false, sortable: false, metric: false },
+    { key: "index",        label: "№",            numeric: true,  sortable: false, metric: false },
+    { key: "season",       label: "Сезон",        numeric: true,  sortable: true,  metric: false },
+    { key: "playerName",   label: "Игрок",        numeric: false, sortable: true,  metric: false },
+    { key: "roleLabel",    label: "Роль",         numeric: false, sortable: true,  metric: false },
+    { key: "matches",      label: "Матчи",        numeric: true,  sortable: true,  metric: true },
+    { key: "goals",        label: "Голы",         numeric: true,  sortable: true,  metric: true },
+    { key: "assists",      label: "Пасы",         numeric: true,  sortable: true,  metric: true },
+    { key: "ga",           label: "Г+П",          numeric: true,  sortable: true,  metric: true },
+    { key: "goalsPerGame",   label: "Голы / игру",  numeric: true, sortable: true,  metric: true, format: "fixed2" },
+    { key: "assistsPerGame", label: "Пасы / игру",  numeric: true, sortable: true,  metric: true, format: "fixed2" },
+    { key: "gaPerGame",      label: "Г+П / игру",   numeric: true, sortable: true,  metric: true, format: "fixed2" },
+    { key: "rating",         label: "Оценка",       numeric: true, sortable: true,  metric: true, format: "fixed2" },
+    { key: "impactPerGame",  label: "Импакт / игру",numeric: true, sortable: true,  metric: true, format: "fixed2" },
+    { key: "seasonImpact",   label: "Импакт сезон", numeric: true, sortable: true,  metric: true, format: "fixed2" },
+    { key: "totalIndex",     label: "Общий индекс", numeric: true, sortable: true,  metric: true, format: "fixed2" },
+    { key: "actions",        label: "",             numeric: false,sortable: false, metric: false },
   ];
 
   const trHead = document.createElement("tr");
@@ -1479,18 +1533,16 @@ function renderSeasonTable() {
     th.dataset.key = h.key;
     th.dataset.numeric = h.numeric ? "1" : "0";
 
-    // sticky-колонки: №, Сезон, Игрок
-    if (h.key === "index") th.classList.add("sticky-col-1");
-    if (h.key === "season") th.classList.add("sticky-col-2");
+    // sticky-колонки
+    if (h.key === "index")      th.classList.add("sticky-col-1");
+    if (h.key === "season")     th.classList.add("sticky-col-2");
     if (h.key === "playerName") th.classList.add("sticky-col-3");
 
     if (h.sortable !== false) {
       th.classList.add("sortable");
       if (sortState.seasonTable.key === h.key) {
         th.classList.add(
-          sortState.seasonTable.direction === "asc"
-            ? "sort-asc"
-            : "sort-desc"
+          sortState.seasonTable.direction === "asc" ? "sort-asc" : "sort-desc"
         );
       }
       th.addEventListener("click", () => {
@@ -1530,8 +1582,8 @@ function renderSeasonTable() {
       const td = document.createElement("td");
 
       // sticky-колонки
-      if (h.key === "index") td.classList.add("sticky-col-1");
-      if (h.key === "season") td.classList.add("sticky-col-2");
+      if (h.key === "index")      td.classList.add("sticky-col-1");
+      if (h.key === "season")     td.classList.add("sticky-col-2");
       if (h.key === "playerName") td.classList.add("sticky-col-3");
 
       // порядковый номер
@@ -1568,7 +1620,7 @@ function renderSeasonTable() {
   table.appendChild(tbody);
   wrapper.appendChild(table);
 
-  // обновить аналитический блок
+  // обновляем аналитический блок под текущие строки
   renderSeasonInsights(rows);
 }
 
