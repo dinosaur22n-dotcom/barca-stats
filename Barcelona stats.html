@@ -1304,211 +1304,214 @@
       });
   }
 
-  function renderSeasonTable() {
-    const wrapper = document.getElementById("seasonTableWrapper");
-    wrapper.innerHTML = "";
+function renderSeasonTable() {
+  const wrapper = document.getElementById("seasonTableWrapper");
+  wrapper.innerHTML = "";
 
-    if (!stats.length) {
-      const empty = document.createElement("div");
-      empty.className = "empty-state";
-      empty.textContent =
-        "Нет статистики. Добавь хотя бы одну запись сезона.";
-      wrapper.appendChild(empty);
-      return;
+  if (!stats.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent =
+      "Нет статистики. Добавь хотя бы одну запись сезона.";
+    wrapper.appendChild(empty);
+    return;
+  }
+
+  const seasonFilter = document.getElementById("seasonFilter").value;
+  const playerMap = getPlayerMap();
+
+  let rows = stats.map((s) => {
+    const player = playerMap.get(s.playerId);
+    const goals = numberOrZero(s.goals);
+    const assists = numberOrZero(s.assists);
+    const matches = numberOrZero(s.matches);
+    const rating = numberOrZero(s.rating);
+    const ga = goals + assists;
+    const gpg = matches > 0 ? goals / matches : 0;
+    const apg = matches > 0 ? assists / matches : 0;
+    const gapg = matches > 0 ? ga / matches : 0;
+
+    const roleKey = getPlayerRole(player);
+    const coeff = ROLE_COEFFICIENTS[roleKey] || ROLE_COEFFICIENTS.forward;
+
+    const impactPerGame =
+      gpg * coeff.goals +
+      apg * coeff.assists +
+      rating * coeff.rating;
+
+    return {
+      season: s.season,
+      playerId: s.playerId,
+      playerName: player ? player.name : "Неизвестно",
+      roleKey,
+      roleLabel: ROLE_LABELS_SHORT[roleKey] || "",
+      matches,
+      goals,
+      assists,
+      ga,
+      goalsPerGame: gpg,
+      assistsPerGame: apg,
+      gaPerGame: gapg,
+      rating,
+      impactPerGameRaw: impactPerGame,
+      impactPerGame: 0,
+      seasonImpact: 0,
+    };
+  });
+
+  if (seasonFilter !== "all") {
+    const seasonNum = parseInt(seasonFilter, 10);
+    rows = rows.filter((r) => r.season === seasonNum);
+  }
+
+  if (!rows.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "Для выбранного сезона данных пока нет.";
+    wrapper.appendChild(empty);
+    return;
+  }
+
+  let maxMatches = 0;
+  rows.forEach((r) => {
+    if (r.matches > maxMatches) maxMatches = r.matches;
+  });
+  if (maxMatches <= 0) maxMatches = 1;
+
+  rows.forEach((r) => {
+    r.impactPerGame = r.impactPerGameRaw;
+    const factor = 0.5 + 0.5 * (r.matches / maxMatches);
+    r.seasonImpact = r.impactPerGame * factor;
+  });
+
+  const { key, direction } = sortState.seasonTable;
+  rows.sort((a, b) =>
+    compareValues(
+      a[key],
+      b[key],
+      key === "playerName" || key === "roleLabel",
+      direction
+    )
+  );
+
+  const metricKeys = [
+    "matches",
+    "goals",
+    "assists",
+    "ga",
+    "goalsPerGame",
+    "assistsPerGame",
+    "gaPerGame",
+    "rating",
+    "impactPerGame",
+    "seasonImpact",
+  ];
+  const ranges = computeMetricRanges(rows, metricKeys);
+
+  const table = document.createElement("table");
+  const thead = document.createElement("thead");
+  const tbody = document.createElement("tbody");
+
+  const headers = [
+    { key: "season", label: "Сезон", numeric: true, sortable: true, metric: false },
+    { key: "playerName", label: "Игрок", numeric: false, sortable: true, metric: false },
+    { key: "roleLabel", label: "Роль", numeric: false, sortable: true, metric: false },
+    { key: "matches", label: "Матчи", numeric: true, sortable: true, metric: true },
+    { key: "goals", label: "Голы", numeric: true, sortable: true, metric: true },
+    { key: "assists", label: "Пасы", numeric: true, sortable: true, metric: true },
+    { key: "ga", label: "Г+П", numeric: true, sortable: true, metric: true },
+    { key: "goalsPerGame", label: "Голы / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
+    { key: "assistsPerGame", label: "Пасы / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
+    { key: "gaPerGame", label: "Г+П / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
+    { key: "rating", label: "Оценка", numeric: true, sortable: true, metric: true, format: "fixed2" },
+    { key: "impactPerGame", label: "Импакт / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
+    { key: "seasonImpact", label: "Импакт сезон", numeric: true, sortable: true, metric: true, format: "fixed2" },
+    { key: "actions", label: "", numeric: false, sortable: false, metric: false },
+  ];
+
+  const trHead = document.createElement("tr");
+  headers.forEach((h) => {
+    const th = document.createElement("th");
+    th.textContent = h.label;
+    th.dataset.key = h.key;
+    th.dataset.numeric = h.numeric ? "1" : "0";
+
+    if (h.sortable !== false) {
+      th.classList.add("sortable");
+      if (sortState.seasonTable.key === h.key) {
+        th.classList.add(
+          sortState.seasonTable.direction === "asc"
+            ? "sort-asc"
+            : "sort-desc"
+        );
+      }
+      th.addEventListener("click", () => {
+        updateSort("seasonTable", h.key);
+        renderSeasonTable();
+        renderSeasonInsights();
+      });
     }
 
-    const seasonFilter = document.getElementById("seasonFilter").value;
-    const playerMap = getPlayerMap();
+    trHead.appendChild(th);
+  });
+  thead.appendChild(trHead);
 
-    let rows = stats.map((s) => {
-      const player = playerMap.get(s.playerId);
-      const goals = numberOrZero(s.goals);
-      const assists = numberOrZero(s.assists);
-      const matches = numberOrZero(s.matches);
-      const rating = numberOrZero(s.rating);
-      const ga = goals + assists;
-      const gpg = matches > 0 ? goals / matches : 0;
-      const apg = matches > 0 ? assists / matches : 0;
-      const gapg = matches > 0 ? ga / matches : 0;
+  // 👇 здесь была проблема — цикл не закрывался и tr не добавлялся в tbody
+  rows.forEach((row) => {
+    const tr = document.createElement("tr");
 
-      const roleKey = getPlayerRole(player);
-      const coeff = ROLE_COEFFICIENTS[roleKey] || ROLE_COEFFICIENTS.forward;
-
-      const impactPerGame =
-        gpg * coeff.goals +
-        apg * coeff.assists +
-        rating * coeff.rating;
-
-      return {
-        season: s.season,
-        playerId: s.playerId,
-        playerName: player ? player.name : "Неизвестно",
-        roleKey,
-        roleLabel: ROLE_LABELS_SHORT[roleKey] || "",
-        matches,
-        goals,
-        assists,
-        ga,
-        goalsPerGame: gpg,
-        assistsPerGame: apg,
-        gaPerGame: gapg,
-        rating,
-        impactPerGameRaw: impactPerGame,
-        impactPerGame: 0,
-        seasonImpact: 0,
-      };
-    });
-
-    if (seasonFilter !== "all") {
-      const seasonNum = parseInt(seasonFilter, 10);
-      rows = rows.filter((r) => r.season === seasonNum);
-    }
-
-    if (!rows.length) {
-      const empty = document.createElement("div");
-      empty.className = "empty-state";
-      empty.textContent = "Для выбранного сезона данных пока нет.";
-      wrapper.appendChild(empty);
-      return;
-    }
-
-    let maxMatches = 0;
-    rows.forEach((r) => {
-      if (r.matches > maxMatches) maxMatches = r.matches;
-    });
-    if (maxMatches <= 0) maxMatches = 1;
-
-    rows.forEach((r) => {
-      r.impactPerGame = r.impactPerGameRaw;
-      const factor = 0.5 + 0.5 * (r.matches / maxMatches);
-      r.seasonImpact = r.impactPerGame * factor;
-    });
-
-    const { key, direction } = sortState.seasonTable;
-    rows.sort((a, b) =>
-      compareValues(
-        a[key],
-        b[key],
-        key === "playerName" || key === "roleLabel",
-        direction
-      )
-    );
-
-    const metricKeys = [
-      "matches",
-      "goals",
-      "assists",
-      "ga",
-      "goalsPerGame",
-      "assistsPerGame",
-      "gaPerGame",
-      "rating",
-      "impactPerGame",
-      "seasonImpact",
-    ];
-    const ranges = computeMetricRanges(rows, metricKeys);
-
-    const table = document.createElement("table");
-    const thead = document.createElement("thead");
-    const tbody = document.createElement("tbody");
-
-    const headers = [
-      { key: "season", label: "Сезон", numeric: true, sortable: true, metric: false },
-      { key: "playerName", label: "Игрок", numeric: false, sortable: true, metric: false },
-      { key: "roleLabel", label: "Роль", numeric: false, sortable: true, metric: false },
-      { key: "matches", label: "Матчи", numeric: true, sortable: true, metric: true },
-      { key: "goals", label: "Голы", numeric: true, sortable: true, metric: true },
-      { key: "assists", label: "Пасы", numeric: true, sortable: true, metric: true },
-      { key: "ga", label: "Г+П", numeric: true, sortable: true, metric: true },
-      { key: "goalsPerGame", label: "Голы / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
-      { key: "assistsPerGame", label: "Пасы / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
-      { key: "gaPerGame", label: "Г+П / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
-      { key: "rating", label: "Оценка", numeric: true, sortable: true, metric: true, format: "fixed2" },
-      { key: "impactPerGame", label: "Импакт / игру", numeric: true, sortable: true, metric: true, format: "fixed2" },
-      { key: "seasonImpact", label: "Импакт сезон", numeric: true, sortable: true, metric: true, format: "fixed2" },
-      { key: "actions", label: "", numeric: false, sortable: false, metric: false },
-    ];
-
-    const trHead = document.createElement("tr");
     headers.forEach((h) => {
-      const th = document.createElement("th");
-      th.textContent = h.label;
-      th.dataset.key = h.key;
-      th.dataset.numeric = h.numeric ? "1" : "0";
-
-      if (h.sortable !== false) {
-        th.classList.add("sortable");
-        if (sortState.seasonTable.key === h.key) {
-          th.classList.add(
-            sortState.seasonTable.direction === "asc"
-              ? "sort-asc"
-              : "sort-desc"
-          );
-        }
-        th.addEventListener("click", () => {
-          updateSort("seasonTable", h.key);
-          renderSeasonTable();
-          renderSeasonInsights();
+      if (h.key === "actions") {
+        const tdDelete = document.createElement("td");
+        tdDelete.style.textAlign = "center";
+        const deleteBtn = document.createElement("button");
+        deleteBtn.type = "button";
+        deleteBtn.textContent = "✕";
+        deleteBtn.title = "Удалить статистику этого игрока за этот сезон";
+        deleteBtn.className = "button-secondary";
+        deleteBtn.style.padding = "2px 8px";
+        deleteBtn.style.fontSize = "0.75rem";
+        deleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          deleteSeasonStats(row.playerId, row.season);
         });
+        tdDelete.appendChild(deleteBtn);
+        tr.appendChild(tdDelete);
+        return;
       }
 
-      trHead.appendChild(th);
+      const td = document.createElement("td");
+      let value = row[h.key];
+
+      if (h.format === "fixed2") {
+        value = Number(value).toFixed(2);
+      }
+
+      if (h.key === "playerName") {
+        td.style.textAlign = "left";
+        td.innerHTML = renderPlayerCell(row.playerId);
+      } else {
+        if (h.metric) {
+          const cls = getMetricClass(h.key, row[h.key], ranges);
+          if (cls) td.classList.add(cls);
+        }
+        td.textContent = value;
+      }
+
+      tr.appendChild(td);
     });
-    thead.appendChild(trHead);
 
-    rows.forEach((row) => {
-      const tr = document.createElement("tr");
+    tbody.appendChild(tr);
+  });
 
-           headers.forEach((h) => {
-        if (h.key === "actions") {
-          const tdDelete = document.createElement("td");
-          tdDelete.style.textAlign = "center";
-          const deleteBtn = document.createElement("button");
-          deleteBtn.type = "button";
-          deleteBtn.textContent = "✕";
-          deleteBtn.title = "Удалить статистику этого игрока за этот сезон";
-          deleteBtn.className = "button-secondary";
-          deleteBtn.style.padding = "2px 8px";
-          deleteBtn.style.fontSize = "0.75rem";
-          deleteBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            deleteSeasonStats(row.playerId, row.season);
-          });
-          tdDelete.appendChild(deleteBtn);
-          tr.appendChild(tdDelete);
-          return;
-        }
+  table.appendChild(thead);
+  table.appendChild(tbody);
+  wrapper.appendChild(table);
 
-        const td = document.createElement("td");
-        let value = row[h.key];
+  // обновить аналитический блок
+  renderSeasonInsights(rows);
+}
 
-        if (h.format === "fixed2") {
-          value = Number(value).toFixed(2);
-        }
-
-        // ИМЕННО ЗДЕСЬ подставляем иконку + имя
-        if (h.key === "playerName") {
-          td.style.textAlign = "left";
-          td.innerHTML = renderPlayerCell(row.playerId);
-        } else {
-          if (h.metric) {
-            const cls = getMetricClass(h.key, row[h.key], ranges);
-            if (cls) td.classList.add(cls);
-          }
-          td.textContent = value;
-        }
-
-        tr.appendChild(td);
-      });
-
-
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    wrapper.appendChild(table);
-
-    // обновить аналитический блок
-    renderSeasonInsights(rows);
-  }
 
   function renderTotalTable() {
     const wrapper = document.getElementById("totalTableWrapper");
