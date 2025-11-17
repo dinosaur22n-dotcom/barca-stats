@@ -930,6 +930,7 @@
         <div class="empty-state">Пока нет данных для подсчёта суммарной статистики.</div>
       </div>
     </div>
+    </section>
 
     <!-- Аналитика сезона + команда сезона -->
     <section class="section-grid analytics-wide">
@@ -1146,12 +1147,15 @@
         renderSeasonTable();
         renderTotalTable();
         renderSeasonInsights();
-        if (playerChart) {
+                if (playerChart) {
           playerChart.destroy();
           playerChart = null;
         }
-        document.getElementById("chartMessage").textContent =
-          "Данные импортированы. Выбери игрока и показатель для графика.";
+        const chartMsg = document.getElementById("chartMessage");
+        if (chartMsg) {
+          chartMsg.textContent =
+            "Данные импортированы. Выбери игрока и показатель для графика.";
+        }
         alert("Данные успешно импортированы!");
       } catch (err) {
         console.error(err);
@@ -1191,6 +1195,7 @@
         msg.textContent = "Игрок удалён. Выбери другого игрока для графика.";
       }
     }
+  }
 
 
   function deleteSeasonStats(playerId, season) {
@@ -1285,7 +1290,35 @@
         const chip = document.createElement("div");
         chip.className = "player-chip";
         chip.dataset.playerId = p.id;
-        ...
+
+        const initials = document.createElement("div");
+        initials.className = "player-initials";
+        initials.textContent = getInitials(p.name);
+
+        const roleSpan = document.createElement("span");
+        const roleKey = getPlayerRole(p);
+        roleSpan.className = "badge";
+        roleSpan.textContent = ROLE_LABELS_SHORT[roleKey] || "РОЛЬ";
+
+        const span = document.createElement("span");
+        span.textContent = p.name;
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.textContent = "✕";
+        removeBtn.className = "button-secondary";
+        removeBtn.style.padding = "0 6px";
+        removeBtn.style.fontSize = "0.75rem";
+        removeBtn.style.lineHeight = "1.2";
+        removeBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          deletePlayer(p.id);
+        });
+
+        chip.appendChild(initials);
+        chip.appendChild(roleSpan);
+        chip.appendChild(span);
+        chip.appendChild(removeBtn);
         playersList.appendChild(chip);
 
         const opt1 = document.createElement("option");
