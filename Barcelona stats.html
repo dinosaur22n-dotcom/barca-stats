@@ -993,32 +993,41 @@
 
   let playerChart = null;
 
-  function loadFromStorage() {
-    try {
-      const playersRaw = localStorage.getItem(STORAGE_KEYS.players);
-      const statsRaw = localStorage.getItem(STORAGE_KEYS.stats);
-      players = playersRaw ? JSON.parse(playersRaw) : [];
-      stats = statsRaw ? JSON.parse(statsRaw) : [];
-    } catch (e) {
-      console.error("Ошибка чтения из localStorage", e);
-      players = [];
-      stats = [];
-    }
+function loadFromStorage() {
+  try {
+    const playersRaw = localStorage.getItem(STORAGE_KEYS.players);
+    const statsRaw = localStorage.getItem(STORAGE_KEYS.stats);
+
+    const loadedPlayers = playersRaw ? JSON.parse(playersRaw) : [];
+    players = loadedPlayers.map(p => ({ ...p, photoData: null })); // фото не храним
+
+    stats = statsRaw ? JSON.parse(statsRaw) : [];
+  } catch (e) {
+    console.error("Ошибка чтения из localStorage", e);
+    players = [];
+    stats = [];
   }
+}
+
 
 function savePlayers() {
   try {
-    localStorage.setItem(STORAGE_KEYS.players, JSON.stringify(players));
+    // выкидываем base64-фото перед сохранением
+    const playersToSave = players.map(p => {
+      const { photoData, ...rest } = p;
+      return rest;
+    });
+
+    localStorage.setItem(STORAGE_KEYS.players, JSON.stringify(playersToSave));
   } catch (e) {
     console.error("Ошибка сохранения игроков в localStorage", e);
     alert(
       "Не удалось сохранить игроков в localStorage.\n" +
-      "Скорее всего, переполнено хранилище (слишком много данных/картинок).\n\n" +
-      "Игроки появятся в списке и будут работать до перезагрузки страницы, " +
-      "но лучше сделать экспорт и удалить часть игроков или фото."
+      "Скорее всего, переполнено хранилище."
     );
   }
 }
+
 
 function saveStats() {
   try {
