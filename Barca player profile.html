@@ -228,17 +228,66 @@
       color: #4ade80;
     }
 
+    .hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ---------- ПРОФИЛЬ ИГРОКА: шапка ---------- */
     .profile-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 6px;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .profile-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.05rem;
+      text-transform: uppercase;
+      color: #fefce8;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.8);
+      border: 2px solid rgba(15,23,42,0.9);
+      background: radial-gradient(circle at 30% 20%, #fde68a 0, #facc15 20%, #a16207 80%);
+    }
+
+    .profile-avatar.forward {
+      background: conic-gradient(from 200deg, var(--barca-claret), var(--barca-gold), var(--barca-claret));
+    }
+
+    .profile-avatar.midfield {
+      background: conic-gradient(from 200deg, var(--barca-blue), var(--barca-claret), var(--barca-blue));
+    }
+
+    .profile-avatar.defender {
+      background: conic-gradient(from 200deg, #0ea5e9, var(--barca-blue), #0ea5e9);
+    }
+
+    .profile-header-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
     }
 
     .profile-name {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       font-weight: 700;
+    }
+
+    .profile-header-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      font-size: 0.78rem;
     }
 
     .profile-role {
@@ -246,8 +295,36 @@
       padding: 2px 8px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(0,0,0,0.3);
+      background: rgba(0,0,0,0.35);
       color: var(--text-muted);
+    }
+
+    .profile-meta {
+      color: var(--text-muted);
+    }
+
+    .profile-tier {
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.2);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .profile-tier.legend {
+      border-color: var(--gold);
+      color: #fef9c3;
+    }
+
+    .profile-tier.core {
+      border-color: var(--silver);
+      color: #e5e7eb;
+    }
+
+    .profile-tier.prospect {
+      border-color: var(--bronze);
+      color: #fed7aa;
     }
 
     .totals-row {
@@ -263,6 +340,81 @@
       border-radius: 999px;
       border: 1px solid var(--border-soft);
       background: rgba(0,0,0,0.35);
+    }
+
+    /* Prime сезон + таймлайн */
+    .prime-block {
+      margin-top: 10px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(253,185,19,0.35);
+      background: radial-gradient(circle at top left, rgba(253,185,19,0.18), rgba(15,23,42,0.9));
+    }
+
+    .prime-text {
+      font-size: 0.8rem;
+      margin-bottom: 4px;
+    }
+
+    .timeline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: flex-end;
+      padding: 6px 4px 2px;
+      border-radius: 10px;
+      background: rgba(2, 11, 26, 0.7);
+      border: 1px dashed rgba(148, 163, 184, 0.35);
+      position: relative;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      bottom: 6px;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(148,163,184,0.2), rgba(248,250,252,0.5), rgba(148,163,184,0.2));
+    }
+
+    .timeline-point {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      min-width: 22px;
+      z-index: 1;
+    }
+
+    .timeline-dot {
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 20%, #e5e7eb 0, #1d4ed8 30%, #0f172a 100%);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+      opacity: 0.75;
+    }
+
+    .timeline-dot-low { opacity: 0.5; }
+    .timeline-dot-mid { opacity: 0.8; }
+    .timeline-dot-high { opacity: 1; }
+
+    .timeline-dot-prime {
+      border-color: var(--barca-gold);
+      box-shadow: 0 0 0 2px rgba(253, 185, 19, 0.9), 0 4px 10px rgba(0, 0, 0, 0.9);
+    }
+
+    .timeline-label {
+      font-size: 0.65rem;
+      opacity: 0.9;
+    }
+
+    .timeline-crown {
+      font-size: 0.7rem;
+      margin-bottom: 1px;
     }
 
     .chart-container {
@@ -287,11 +439,18 @@
       height: 210px;
     }
 
+    /* Ачивки */
     .achievements-section {
       margin-top: 10px;
       display: grid;
-      grid-template-columns: minmax(0,1fr);
+      grid-template-columns: repeat(2, minmax(0,1fr));
       gap: 10px;
+    }
+
+    @media (max-width: 800px) {
+      .achievements-section {
+        grid-template-columns: minmax(0,1fr);
+      }
     }
 
     .achievements-group-title {
@@ -315,6 +474,18 @@
       border-radius: 10px;
       background: rgba(3, 16, 40, 0.85);
       border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .achievement-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .achievement-icon {
+      font-size: 0.9rem;
+      width: 18px;
+      text-align: center;
     }
 
     .achievement-label {
@@ -350,62 +521,6 @@
     .muted {
       opacity: 0.45;
     }
-
-    .hint {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-    /* Prime сезон + таймлайн */
-    .prime-block {
-      margin-top: 8px;
-    }
-
-    .prime-text {
-      font-size: 0.8rem;
-      margin-top: 6px;
-      margin-bottom: 4px;
-    }
-
-    .timeline {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      align-items: flex-end;
-      padding: 4px 2px 0;
-      border-radius: 10px;
-      background: rgba(2, 11, 26, 0.7);
-      border: 1px dashed rgba(148, 163, 184, 0.35);
-    }
-
-    .timeline-point {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2px;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      min-width: 20px;
-    }
-
-    .timeline-dot {
-      border-radius: 999px;
-      background: linear-gradient(135deg, var(--barca-blue), var(--barca-claret));
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      opacity: 0.7;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
-    }
-
-    .timeline-dot-prime {
-      border-color: var(--barca-gold);
-      box-shadow: 0 0 0 2px rgba(253, 185, 19, 0.9), 0 4px 10px rgba(0, 0, 0, 0.9);
-      opacity: 1;
-    }
-
-    .timeline-label {
-      font-size: 0.65rem;
-      opacity: 0.9;
-    }    
   </style>
 </head>
 <body>
@@ -444,7 +559,7 @@
       </div>
       <div class="status" id="importStatus">Данные ещё не загружены.</div>
       <p class="hint">
-        После импорта выбери игрока справа — появится график, суммарные цифры и ачивки.
+        После импорта выбери игрока ниже — появится график, суммарные цифры и ачивки.
       </p>
     </div>
 
@@ -476,7 +591,7 @@
       <div class="card-header">
         <div class="card-title">
           📁 Профиль игрока
-          <span class="card-pill">График · Сумма · Ачивки</span>
+          <span class="card-pill">График · Prime · Ачивки</span>
         </div>
       </div>
       <p class="card-description" id="profileIntro">
@@ -485,9 +600,16 @@
 
       <div id="profileContent" style="display:none;">
         <div class="profile-header">
-          <div>
+          <div class="profile-avatar" id="profileAvatar">
+            <span id="profileAvatarInitials"></span>
+          </div>
+          <div class="profile-header-main">
             <div class="profile-name" id="profileName"></div>
-            <div class="profile-role" id="profileRole"></div>
+            <div class="profile-header-meta">
+              <span class="profile-role" id="profileRole"></span>
+              <span class="profile-meta" id="profileMeta"></span>
+              <span class="profile-tier" id="profileTier"></span>
+            </div>
           </div>
         </div>
 
@@ -505,7 +627,6 @@
           <div id="primeTimeline" class="timeline"></div>
         </div>
 
-        
         <div class="chart-container">
           <div class="chart-bar">
             <span>График по сезонам</span>
@@ -543,7 +664,6 @@
 </main>
 
 <script>
-  // ----- Константы и структуры -----
   const ROLE_TYPES = {
     FORWARD: "forward",
     MIDFIELD: "midfield",
@@ -565,15 +685,13 @@
   let players = [];
   let stats = [];
 
-  // агрегированные данные
-  let seasonRows = [];             // [{season, playerId, matches, goals, assists, rating, ga, gpg, apg, impactPg, impactSeason}]
-  let perPlayerSeason = new Map(); // playerId -> rows[]
-  let playerTotals = new Map();    // playerId -> {matches, goals, assists, ga}
-  let seasonAwards = new Map();    // season -> { topGoals:Set, topAssists:Set, topGA:Set, topImpactPg:Set, topImpactSeason:Set }
+  let seasonRows = [];
+  let perPlayerSeason = new Map();
+  let playerTotals = new Map();
+  let seasonAwards = new Map();
 
   let chart = null;
 
-  // ----- Вспомогательные -----
   function numberOrZero(v) {
     const n = parseFloat(v);
     return isNaN(n) ? 0 : n;
@@ -591,7 +709,13 @@
     return parts[parts.length - 1];
   }
 
-  // ----- Импорт -----
+  function getInitials(name) {
+    const parts = (name || "").trim().split(" ").filter(Boolean);
+    if (!parts.length) return "?";
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
   const importFileInput = document.getElementById("importFile");
   const importStatusEl = document.getElementById("importStatus");
   const playerSelectEl = document.getElementById("playerSelect");
@@ -624,7 +748,6 @@
     reader.readAsText(file, "utf-8");
   });
 
-  // ----- Подготовка данных -----
   function prepareAggregates() {
     seasonRows = [];
     perPlayerSeason.clear();
@@ -633,7 +756,6 @@
 
     if (!players.length || !stats.length) return;
 
-    // 1) агрегируем по (season, playerId)
     const grouped = new Map();
     stats.forEach((s) => {
       const key = `${s.season}__${s.playerId}`;
@@ -661,7 +783,6 @@
 
     const groupedArray = Array.from(grouped.values());
 
-    // 2) считаем maxMatches по каждому сезону
     const maxMatchesBySeason = {};
     groupedArray.forEach((g) => {
       const s = g.season;
@@ -670,7 +791,6 @@
       }
     });
 
-    // 3) строим seasonRows, перезаполняем perPlayerSeason и playerTotals
     const playerMap = new Map(players.map(p => [p.id, p]));
 
     groupedArray.forEach((g) => {
@@ -719,7 +839,6 @@
       tot.ga += ga;
     });
 
-    // 4) считаем сезонные награды (лучший бомбардир и т.п.)
     const seasons = [...new Set(seasonRows.map(r => r.season))];
     seasons.forEach((season) => {
       const rowsForSeason = seasonRows.filter(r => r.season === season);
@@ -737,7 +856,7 @@
           const v = Number(r[key]) || 0;
           if (v > max) max = v;
         });
-        if (max <= 0) return; // если всё нули — никого
+        if (max <= 0) return;
         rowsForSeason.forEach((r) => {
           const v = Number(r[key]) || 0;
           if (v === max) set.add(r.playerId);
@@ -754,7 +873,6 @@
     });
   }
 
-  // ----- UI: выбор игрока -----
   function populatePlayerSelect() {
     playerSelectEl.innerHTML = "";
     if (!players.length) {
@@ -794,21 +912,24 @@
 
   const profileIntroEl = document.getElementById("profileIntro");
   const profileContentEl = document.getElementById("profileContent");
+  const profileAvatarEl = document.getElementById("profileAvatar");
+  const profileAvatarInitialsEl = document.getElementById("profileAvatarInitials");
   const profileNameEl = document.getElementById("profileName");
   const profileRoleEl = document.getElementById("profileRole");
+  const profileMetaEl = document.getElementById("profileMeta");
+  const profileTierEl = document.getElementById("profileTier");
   const totalMatchesEl = document.getElementById("totalMatches");
   const totalGoalsEl = document.getElementById("totalGoals");
   const totalAssistsEl = document.getElementById("totalAssists");
   const totalGAEl = document.getElementById("totalGA");
+  const primeSeasonTextEl = document.getElementById("primeSeasonText");
+  const primeTimelineEl = document.getElementById("primeTimeline");
   const metricSelectEl = document.getElementById("metricSelect");
   const seasonAchievementsEl = document.getElementById("seasonAchievements");
   const careerAchievementsEl = document.getElementById("careerAchievements");
   const chartCanvasEl = document.getElementById("playerChart");
-    const primeSeasonTextEl = document.getElementById("primeSeasonText");
-  const primeTimelineEl = document.getElementById("primeTimeline");
 
-
-    function hideProfile() {
+  function hideProfile() {
     profileContentEl.style.display = "none";
     profileIntroEl.textContent = "Импортируй данные и выбери игрока, чтобы увидеть его историю в клубе.";
     if (chart) {
@@ -824,7 +945,6 @@
     }
   }
 
-
   function renderProfile(playerId) {
     const player = players.find(p => p.id === playerId);
     if (!player) {
@@ -834,17 +954,40 @@
 
     profileContentEl.style.display = "block";
     profileIntroEl.textContent = "";
-    profileNameEl.textContent = player.name;
+
     const roleKey = getPlayerRole(player);
+    profileAvatarEl.classList.remove("forward","midfield","defender");
+    profileAvatarEl.classList.add(roleKey);
+    profileAvatarInitialsEl.textContent = getInitials(player.name);
+
+    profileNameEl.textContent = player.name;
     profileRoleEl.textContent = ROLE_LABELS_FULL[roleKey] || "Игрок";
+
+    const rowsForPlayer = perPlayerSeason.get(playerId) || [];
+    const seasonsPlayed = rowsForPlayer.length;
+    profileMetaEl.textContent = seasonsPlayed
+      ? `Сезонов в клубе: ${seasonsPlayed}`
+      : "Сезонов в клубе: 0";
 
     const totals = playerTotals.get(playerId) || { matches: 0, goals: 0, assists: 0, ga: 0 };
     totalMatchesEl.textContent = `Матчи: ${totals.matches}`;
     totalGoalsEl.textContent = `Голы: ${totals.goals}`;
     totalAssistsEl.textContent = `Пасы: ${totals.assists}`;
     totalGAEl.textContent = `Г+П: ${totals.ga}`;
-        // --- Prime сезон и таймлайн ---
-    const rows = (perPlayerSeason.get(playerId) || []).slice().sort((a, b) => a.season - b.season);
+
+    // Tier: Legend/Core/Prospect
+    let tier = "prospect";
+    if (totals.matches >= 300 || totals.goals >= 150) tier = "legend";
+    else if (totals.matches >= 100 || totals.goals >= 50) tier = "core";
+
+    profileTierEl.classList.remove("legend","core","prospect");
+    profileTierEl.classList.add(tier);
+    profileTierEl.textContent =
+      tier === "legend" ? "LEGEND" :
+      tier === "core" ? "CORE" : "PROSPECT";
+
+    // Prime сезон и таймлайн
+    const rows = rowsForPlayer.slice().sort((a, b) => a.season - b.season);
 
     if (!rows.length) {
       if (primeSeasonTextEl) {
@@ -855,7 +998,6 @@
         primeTimelineEl.innerHTML = "";
       }
     } else {
-      // находим prime-сезон по максимальному импакту / игру
       let primeRow = rows[0];
       rows.forEach((r) => {
         if ((r.impactPg || 0) > (primeRow.impactPg || 0)) {
@@ -884,15 +1026,26 @@
             norm = (value - minImp) / (maxImp - minImp);
           }
           if (!isFinite(norm) || isNaN(norm)) norm = 0.5;
-          const size = 14 + norm * 10; // размер кружка
+          const size = 14 + norm * 10;
 
           const point = document.createElement("div");
           point.className = "timeline-point";
+
+          if (r === primeRow) {
+            const crown = document.createElement("div");
+            crown.className = "timeline-crown";
+            crown.textContent = "👑";
+            point.appendChild(crown);
+          }
 
           const dot = document.createElement("div");
           dot.className = "timeline-dot";
           dot.style.width = size + "px";
           dot.style.height = size + "px";
+
+          if (norm < 0.33) dot.classList.add("timeline-dot-low");
+          else if (norm < 0.67) dot.classList.add("timeline-dot-mid");
+          else dot.classList.add("timeline-dot-high");
 
           if (r === primeRow) {
             dot.classList.add("timeline-dot-prime");
@@ -903,7 +1056,7 @@
 
           const label = document.createElement("div");
           label.className = "timeline-label";
-          label.textContent = r.season;
+          label.textContent = "S" + r.season;
 
           point.appendChild(dot);
           point.appendChild(label);
@@ -911,7 +1064,6 @@
         });
       }
     }
-
 
     renderChart(playerId, metricSelectEl.value);
     renderSeasonAchievements(playerId);
@@ -926,7 +1078,6 @@
     renderChart(playerId, metricSelectEl.value);
   });
 
-  // ----- График -----
   function renderChart(playerId, metric) {
     const rows = (perPlayerSeason.get(playerId) || []).slice().sort((a, b) => a.season - b.season);
     const labels = rows.map(r => "Сезон " + r.season);
@@ -993,7 +1144,6 @@
     });
   }
 
-  // ----- Ачивки по сезонам -----
   function renderSeasonAchievements(playerId) {
     seasonAchievementsEl.innerHTML = "";
 
@@ -1034,40 +1184,51 @@
       }
     });
 
-    function addSeasonAchievement(label, count) {
+    function addSeasonAchievement(icon, label, count) {
       const item = document.createElement("div");
       item.className = "achievement-item" + (count === 0 ? " muted" : "");
+
+      const left = document.createElement("div");
+      left.className = "achievement-left";
+
+      const iconEl = document.createElement("div");
+      iconEl.className = "achievement-icon";
+      iconEl.textContent = icon;
+
       const lbl = document.createElement("div");
       lbl.className = "achievement-label";
       lbl.textContent = label;
+
+      left.appendChild(iconEl);
+      left.appendChild(lbl);
+
       const cnt = document.createElement("div");
       cnt.className = "achievement-count";
       cnt.textContent = count > 0 ? `x${count}` : "x0";
-      item.appendChild(lbl);
+
+      item.appendChild(left);
       item.appendChild(cnt);
       seasonAchievementsEl.appendChild(item);
     }
 
-    addSeasonAchievement("30+ голов за сезон", c30Goals);
-    addSeasonAchievement("20+ голевых передач за сезон", c20Assists);
-    addSeasonAchievement("Рейтинг 8.0+ за сезон", cRating8);
-    addSeasonAchievement(">9 импакт / игру за сезон", cImpPg9);
-    addSeasonAchievement(">9 импакт за сезон", cImpSeason9);
-    addSeasonAchievement("Лучший бомбардир сезона", cTopGoals);
-    addSeasonAchievement("Лучший ассистент сезона", cTopAssists);
-    addSeasonAchievement("Лучший по Г+П сезона", cTopGA);
-    addSeasonAchievement("Лучший по импакту / игру в сезоне", cTopImpPg);
-    addSeasonAchievement("Лучший по импакту за сезон", cTopImpSeason);
+    addSeasonAchievement("⚽", "30+ голов за сезон", c30Goals);
+    addSeasonAchievement("🎯", "20+ голевых передач за сезон", c20Assists);
+    addSeasonAchievement("⭐", "Рейтинг 8.0+ за сезон", cRating8);
+    addSeasonAchievement("📊", ">9 импакт / игру", cImpPg9);
+    addSeasonAchievement("🔥", ">9 импакт за сезон", cImpSeason9);
+    addSeasonAchievement("🥇", "Лучший бомбардир сезона", cTopGoals);
+    addSeasonAchievement("🥇", "Лучший ассистент сезона", cTopAssists);
+    addSeasonAchievement("🥇", "Лучший по Г+П сезона", cTopGA);
+    addSeasonAchievement("👑", "Лучший по импакту / игру", cTopImpPg);
+    addSeasonAchievement("👑", "Лучший по импакту за сезон", cTopImpSeason);
   }
 
-  // ----- Карьерные ачивки -----
   function renderCareerAchievements(playerId) {
     careerAchievementsEl.innerHTML = "";
 
     const totals = playerTotals.get(playerId) || { matches: 0, goals: 0, assists: 0, ga: 0 };
     const rows = perPlayerSeason.get(playerId) || [];
 
-    // Сезонные победы (для “n-кратный лучший ...”)
     let cTopGoals = 0;
     let cTopAssists = 0;
     let cTopGA = 0;
@@ -1094,24 +1255,37 @@
       return span;
     }
 
-    function addCareerItem(label, badgeText, level, show) {
+    function addCareerItem(icon, label, badgeText, level, show) {
       const item = document.createElement("div");
       item.className = "achievement-item" + (!show ? " muted" : "");
+
+      const left = document.createElement("div");
+      left.className = "achievement-left";
+
+      const iconEl = document.createElement("div");
+      iconEl.className = "achievement-icon";
+      iconEl.textContent = icon;
+
       const lbl = document.createElement("div");
       lbl.className = "achievement-label";
       lbl.textContent = label;
+
+      left.appendChild(iconEl);
+      left.appendChild(lbl);
+
       const right = document.createElement("div");
       if (show) {
         right.appendChild(createBadge(badgeText, level));
       } else {
         right.textContent = "—";
       }
-      item.appendChild(lbl);
+
+      item.appendChild(left);
       item.appendChild(right);
       careerAchievementsEl.appendChild(item);
     }
 
-    // 1–5) матчи: 100/200/300/400/500
+    // Матчи: 100/200/300/400/500
     const matchThresholds = [500, 400, 300, 200, 100];
     let matchAch = null;
     matchThresholds.some((thr) => {
@@ -1125,12 +1299,12 @@
       let level = "bronze";
       if (matchAch >= 300 && matchAch < 500) level = "silver";
       if (matchAch >= 500) level = "gold";
-      addCareerItem("Матчи за клуб", `${matchAch} матчей`, level, true);
+      addCareerItem("🕰", "Матчи за клуб", `${matchAch} матчей`, level, true);
     } else {
-      addCareerItem("Матчи за клуб", "", "bronze", false);
+      addCareerItem("🕰", "Матчи за клуб", "", "bronze", false);
     }
 
-    // 6) голы: 50,100,150,200,250,300
+    // Голы: 50,100,150,200,250,300
     const goalThresholds = [300, 250, 200, 150, 100, 50];
     let goalAch = null;
     goalThresholds.some((thr) => {
@@ -1144,12 +1318,12 @@
       let level = "bronze";
       if (goalAch >= 150 && goalAch < 250) level = "silver";
       if (goalAch >= 250) level = "gold";
-      addCareerItem("Голы за клуб", `${goalAch}+ голов`, level, true);
+      addCareerItem("⚽", "Голы за клуб", `${goalAch}+ голов`, level, true);
     } else {
-      addCareerItem("Голы за клуб", "", "bronze", false);
+      addCareerItem("⚽", "Голы за клуб", "", "bronze", false);
     }
 
-    // 7) ассисты: 30,60,90,120,150,180
+    // Ассисты: 30,60,90,120,150,180
     const assistThresholds = [180, 150, 120, 90, 60, 30];
     let assistAch = null;
     assistThresholds.some((thr) => {
@@ -1163,28 +1337,27 @@
       let level = "bronze";
       if (assistAch >= 90 && assistAch < 150) level = "silver";
       if (assistAch >= 150) level = "gold";
-      addCareerItem("Голевые передачи за клуб", `${assistAch}+ передач`, level, true);
+      addCareerItem("🎯", "Голевые передачи за клуб", `${assistAch}+ передач`, level, true);
     } else {
-      addCareerItem("Голевые передачи за клуб", "", "bronze", false);
+      addCareerItem("🎯", "Голевые передачи за клуб", "", "bronze", false);
     }
 
-    // 8–12) n-кратный лучший ...
-    function multiBestItem(label, count) {
+    function multiBestItem(icon, label, count) {
       if (count < 2) {
-        addCareerItem(label, "", "bronze", false);
+        addCareerItem(icon, label, "", "bronze", false);
         return;
       }
       let level = "bronze";
       if (count >= 3 && count <= 4) level = "silver";
       if (count >= 5) level = "gold";
-      addCareerItem(label, `${count}-кратный`, level, true);
+      addCareerItem(icon, label, `${count}-кратный`, level, true);
     }
 
-    multiBestItem("Лучший бомбардир сезона (карьера)", cTopGoals);
-    multiBestItem("Лучший ассистент сезона (карьера)", cTopAssists);
-    multiBestItem("Лучший по Г+П сезона (карьера)", cTopGA);
-    multiBestItem("Лучший по импакту / игру сезона (карьера)", cTopImpPg);
-    multiBestItem("Лучший по импакту за сезон (карьера)", cTopImpSeason);
+    multiBestItem("🥇", "Лучший бомбардир сезона (карьера)", cTopGoals);
+    multiBestItem("🥇", "Лучший ассистент сезона (карьера)", cTopAssists);
+    multiBestItem("🥇", "Лучший по Г+П сезона (карьера)", cTopGA);
+    multiBestItem("👑", "Лучший по импакту / игру (карьера)", cTopImpPg);
+    multiBestItem("👑", "Лучший по импакту за сезон (карьера)", cTopImpSeason);
   }
 </script>
 </body>
