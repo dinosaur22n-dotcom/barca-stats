@@ -632,6 +632,59 @@
       font-size: 0.75rem;
       color: var(--text-muted);
     }
+
+    /* Мини-аватарка игрока в таблицах */
+    .player-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .player-avatar-mini {
+      position: relative;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: radial-gradient(circle at 30% 20%, #e5e7eb 0, #1d4ed8 30%, #0f172a 100%);
+      border: 1px solid rgba(255,255,255,0.6);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #f9fafb;
+    }
+
+    .player-avatar-mini img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .player-avatar-mini-initials {
+      position: relative;
+      z-index: 1;
+    }
+
+    .player-name-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 180px;
+    }
+
+    @media (max-width: 900px) {
+      .player-name-text {
+        max-width: 120px;
+      }
+    }
+
+    
   </style>
 </head>
 <body>
@@ -962,13 +1015,32 @@
   }
 
   function getInitials(name) {
-    const parts = name.split(" ").filter(Boolean);
+    const parts = (name || "").trim().split(" ").filter(Boolean);
     if (!parts.length) return "?";
-    if (parts.length === 1) {
-      return parts[0][0].toUpperCase();
-    }
+    if (parts.length === 1) return parts[0][0].toUpperCase();
     return (parts[0][0] + parts[1][0]).toUpperCase();
   }
+
+    function renderPlayerCell(playerId) {
+    const player = players.find(p => p.id === playerId);
+    const name = player ? player.name : "Неизвестный";
+    const initials = getInitials(name);
+    const photo = player && player.photoData;
+
+    return `
+      <div class="player-cell">
+        <div class="player-avatar-mini">
+          ${
+            photo
+              ? `<img src="${photo}" alt="${name}" />`
+              : `<span class="player-avatar-mini-initials">${initials}</span>`
+          }
+        </div>
+        <span class="player-name-text" title="${name}">${name}</span>
+      </div>
+    `;
+  }
+
 
   function getLastName(name) {
     const parts = name.trim().split(" ").filter(Boolean);
@@ -1387,7 +1459,7 @@
     rows.forEach((row) => {
       const tr = document.createElement("tr");
 
-      headers.forEach((h) => {
+           headers.forEach((h) => {
         if (h.key === "actions") {
           const tdDelete = document.createElement("td");
           tdDelete.style.textAlign = "center";
@@ -1414,21 +1486,21 @@
           value = Number(value).toFixed(2);
         }
 
+        // ИМЕННО ЗДЕСЬ подставляем иконку + имя
         if (h.key === "playerName") {
           td.style.textAlign = "left";
+          td.innerHTML = renderPlayerCell(row.playerId);
+        } else {
+          if (h.metric) {
+            const cls = getMetricClass(h.key, row[h.key], ranges);
+            if (cls) td.classList.add(cls);
+          }
+          td.textContent = value;
         }
 
-        if (h.metric) {
-          const cls = getMetricClass(h.key, row[h.key], ranges);
-          if (cls) td.classList.add(cls);
-        }
-
-        td.textContent = value;
         tr.appendChild(td);
       });
 
-      tbody.appendChild(tr);
-    });
 
     table.appendChild(thead);
     table.appendChild(tbody);
@@ -1552,7 +1624,7 @@
     });
     thead.appendChild(trHead);
 
-    rows.forEach((row) => {
+       rows.forEach((row) => {
       const tr = document.createElement("tr");
       headers.forEach((h) => {
         const td = document.createElement("td");
@@ -1564,18 +1636,20 @@
 
         if (h.key === "playerName") {
           td.style.textAlign = "left";
+          td.innerHTML = renderPlayerCell(row.playerId); // тут тоже есть playerId
+        } else {
+          if (h.metric) {
+            const cls = getMetricClass(h.key, row[h.key], ranges);
+            if (cls) td.classList.add(cls);
+          }
+          td.textContent = value;
         }
 
-        if (h.metric) {
-          const cls = getMetricClass(h.key, row[h.key], ranges);
-          if (cls) td.classList.add(cls);
-        }
-
-        td.textContent = value;
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
     });
+
 
     table.appendChild(thead);
     table.appendChild(tbody);
@@ -1831,18 +1905,26 @@
     const awardsList = document.createElement("div");
     awardsList.className = "awards-list";
 
-    function awardLine(label, best, metricLabel) {
+        function awardLine(label, best, metricLabel) {
       if (!best) return;
       const div = document.createElement("div");
       div.className = "award-item";
+
       const spanLabel = document.createElement("span");
       spanLabel.textContent = label + ":";
+
       const spanValue = document.createElement("span");
-      spanValue.innerHTML = `<b>${best.row.playerName}</b> — ${best.value.toFixed ? best.value.toFixed(2) : best.value} ${metricLabel}`;
+
+      const playerHtml = renderPlayerCell(best.row.playerId);
+      const valueText = `${best.value.toFixed ? best.value.toFixed(2) : best.value} ${metricLabel}`;
+
+      spanValue.innerHTML = `${playerHtml} — ${valueText}`;
+
       div.appendChild(spanLabel);
       div.appendChild(spanValue);
       awardsList.appendChild(div);
     }
+
 
     awardLine("🥇 Бомбардир", bestGoals, "голов");
     awardLine("🎯 Ассистент", bestAssists, "пасов");
