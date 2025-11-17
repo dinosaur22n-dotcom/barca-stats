@@ -349,21 +349,61 @@
       color: var(--error-color);
     }
 
-    .table-wrapper {
+       .table-wrapper {
       border-radius: 14px;
       border: 1px solid var(--border-soft);
       margin-top: 8px;
       background: rgba(2, 11, 26, 0.95);
       overflow-x: auto;
       overflow-y: hidden;
+      position: relative; /* нужно для sticky-колонок */
     }
 
     table {
       width: 100%;
-      min-width: 900px;
+      min-width: 1100px; /* было 900px — чуть расширили под новый столбец */
       border-collapse: collapse;
       font-size: 0.8rem;
     }
+
+    /* --- sticky-колонки в таблицах --- */
+    th.sticky-col-1,
+    th.sticky-col-2,
+    th.sticky-col-3 {
+      position: sticky;
+      z-index: 4; /* поверх данных */
+      background: linear-gradient(90deg, rgba(165, 0, 68, 0.9), rgba(0, 77, 152, 0.9));
+    }
+
+    td.sticky-col-1,
+    td.sticky-col-2,
+    td.sticky-col-3 {
+      position: sticky;
+      z-index: 3;
+      background: inherit; /* берём фон строки (чередование строк сохранится) */
+    }
+
+    /* смещения по горизонтали — подгони при желании */
+    th.sticky-col-1,
+    td.sticky-col-1 {
+      left: 0;
+      min-width: 40px;
+      max-width: 40px;
+    }
+
+    th.sticky-col-2,
+    td.sticky-col-2 {
+      left: 50px; /* 40px (№) + немного паддинга */
+      min-width: 70px;
+      max-width: 70px;
+    }
+
+    th.sticky-col-3,
+    td.sticky-col-3 {
+      left: 130px; /* 40 + 70 + отступы */
+      min-width: 180px;
+    }
+
 
     thead {
       background: linear-gradient(90deg, rgba(165, 0, 68, 0.9), rgba(0, 77, 152, 0.9));
@@ -1414,6 +1454,7 @@ function renderSeasonTable() {
 
   const headers = [
     { key: "season", label: "Сезон", numeric: true, sortable: true, metric: false },
+    { key: "season", label: "Сезон", numeric: true, sortable: true, metric: false },
     { key: "playerName", label: "Игрок", numeric: false, sortable: true, metric: false },
     { key: "roleLabel", label: "Роль", numeric: false, sortable: true, metric: false },
     { key: "matches", label: "Матчи", numeric: true, sortable: true, metric: true },
@@ -1436,6 +1477,11 @@ function renderSeasonTable() {
     th.dataset.key = h.key;
     th.dataset.numeric = h.numeric ? "1" : "0";
 
+    // sticky-колонки
+    if (h.key === "index") th.classList.add("sticky-col-1");
+    if (h.key === "season") th.classList.add("sticky-col-2");
+    if (h.key === "playerName") th.classList.add("sticky-col-3");
+
     if (h.sortable !== false) {
       th.classList.add("sortable");
       if (sortState.seasonTable.key === h.key) {
@@ -1454,10 +1500,15 @@ function renderSeasonTable() {
 
     trHead.appendChild(th);
   });
+
+    }
+
+    trHead.appendChild(th);
+  });
   thead.appendChild(trHead);
 
   // 👇 здесь была проблема — цикл не закрывался и tr не добавлялся в tbody
-  rows.forEach((row) => {
+  rows.forEach((row, rowIndex) => {
     const tr = document.createElement("tr");
 
     headers.forEach((h) => {
@@ -1481,8 +1532,21 @@ function renderSeasonTable() {
       }
 
       const td = document.createElement("td");
-      let value = row[h.key];
 
+      // sticky-колонки
+      if (h.key === "index") td.classList.add("sticky-col-1");
+      if (h.key === "season") td.classList.add("sticky-col-2");
+      if (h.key === "playerName") td.classList.add("sticky-col-3");
+
+      // порядковый номер
+      if (h.key === "index") {
+        td.textContent = rowIndex + 1;
+        td.style.textAlign = "center";
+        tr.appendChild(td);
+        return;
+      }
+
+      let value = row[h.key];
       if (h.format === "fixed2") {
         value = Number(value).toFixed(2);
       }
@@ -1503,6 +1567,7 @@ function renderSeasonTable() {
 
     tbody.appendChild(tr);
   });
+
 
   table.appendChild(thead);
   table.appendChild(tbody);
@@ -1596,6 +1661,7 @@ function renderSeasonTable() {
     const tbody = document.createElement("tbody");
 
     const headers = [
+      { key: "index", label: "№", numeric: true, metric: false },
       { key: "playerName", label: "Игрок", numeric: false, metric: false },
       { key: "matches", label: "Матчи", numeric: true, metric: true },
       { key: "goals", label: "Голы", numeric: true, metric: true },
@@ -1607,12 +1673,18 @@ function renderSeasonTable() {
       { key: "careerImpact", label: "Карьерный импакт", numeric: true, metric: true, format: "fixed2" },
     ];
 
-    const trHead = document.createElement("tr");
+
+        const trHead = document.createElement("tr");
     headers.forEach((h) => {
       const th = document.createElement("th");
       th.textContent = h.label;
       th.dataset.key = h.key;
       th.dataset.numeric = h.numeric ? "1" : "0";
+
+      // sticky: № + игрок
+      if (h.key === "index") th.classList.add("sticky-col-1");
+      if (h.key === "playerName") th.classList.add("sticky-col-3");
+
       th.classList.add("sortable");
       if (sortState.totalTable.key === h.key) {
         th.classList.add(
@@ -1627,19 +1699,31 @@ function renderSeasonTable() {
     });
     thead.appendChild(trHead);
 
-       rows.forEach((row) => {
+
+           rows.forEach((row, rowIndex) => {
       const tr = document.createElement("tr");
       headers.forEach((h) => {
         const td = document.createElement("td");
-        let value = row[h.key];
 
+        // sticky: № + игрок
+        if (h.key === "index") td.classList.add("sticky-col-1");
+        if (h.key === "playerName") td.classList.add("sticky-col-3");
+
+        if (h.key === "index") {
+          td.textContent = rowIndex + 1;
+          td.style.textAlign = "center";
+          tr.appendChild(td);
+          return;
+        }
+
+        let value = row[h.key];
         if (h.format === "fixed2") {
           value = Number(value).toFixed(2);
         }
 
         if (h.key === "playerName") {
           td.style.textAlign = "left";
-          td.innerHTML = renderPlayerCell(row.playerId); // тут тоже есть playerId
+          td.innerHTML = renderPlayerCell(row.playerId);
         } else {
           if (h.metric) {
             const cls = getMetricClass(h.key, row[h.key], ranges);
@@ -1652,6 +1736,7 @@ function renderSeasonTable() {
       });
       tbody.appendChild(tr);
     });
+
 
 
     table.appendChild(thead);
