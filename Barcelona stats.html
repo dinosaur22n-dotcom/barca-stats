@@ -259,6 +259,46 @@
       overflow-y: auto;
     }
 
+    /* Фото игрока */
+    .photo-drop {
+      margin-top: 6px;
+      padding: 6px 8px;
+      border-radius: 12px;
+      border: 1px dashed rgba(148, 163, 184, 0.6);
+      background: rgba(3, 16, 40, 0.8);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .photo-drop:hover {
+      border-color: var(--barca-gold);
+      background: rgba(6, 22, 56, 0.9);
+    }
+
+    .photo-drop strong {
+      color: #e5e7eb;
+    }
+
+    .photo-preview {
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .photo-preview img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid rgba(255,255,255,0.4);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.7);
+    }
+
+    
     .player-chip {
       border-radius: 999px;
       border: 1px solid rgba(255, 255, 255, 0.12);
@@ -642,6 +682,16 @@
           </div>
         </div>
       </form>
+      <div class="photo-drop" id="newPlayerPhotoDrop">
+        <strong>Фото игрока (необязательно):</strong><br />
+        Кликни сюда и нажми <strong>Ctrl+V</strong>, чтобы вставить скриншот из буфера.
+      </div>
+      <div class="photo-preview" id="newPlayerPhotoPreview" style="display:none;">
+        <img id="newPlayerPhotoImg" alt="Фото игрока" />
+        <span>Фото будет сохранено вместе с игроком.</span>
+      </div>
+
+      
       <div class="soft-divider"></div>
       <div class="players-list" id="playersList"></div>
       <div class="status" id="playerStatus"></div>
@@ -862,6 +912,7 @@
 
   let players = [];
   let stats = [];
+  let newPlayerPhotoData = null; // base64 фото для нового игрока
 
   const sortState = {
     seasonTable: { key: "seasonImpact", direction: "desc" },
@@ -2066,6 +2117,36 @@
     const statsStatus = document.getElementById("statsStatus");
     const exportBtn = document.getElementById("exportBtn");
     const importFileInput = document.getElementById("importFile");
+        const newPlayerPhotoDrop = document.getElementById("newPlayerPhotoDrop");
+    const newPlayerPhotoPreview = document.getElementById("newPlayerPhotoPreview");
+    const newPlayerPhotoImg = document.getElementById("newPlayerPhotoImg");
+
+    if (newPlayerPhotoDrop) {
+      newPlayerPhotoDrop.addEventListener("click", () => {
+        newPlayerPhotoDrop.focus();
+      });
+
+      newPlayerPhotoDrop.addEventListener("paste", (event) => {
+        const items = event.clipboardData && event.clipboardData.items;
+        if (!items) return;
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (item.kind === "file" && item.type.startsWith("image/")) {
+            const file = item.getAsFile();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              newPlayerPhotoData = e.target.result; // base64
+              newPlayerPhotoImg.src = newPlayerPhotoData;
+              newPlayerPhotoPreview.style.display = "flex";
+            };
+            reader.readAsDataURL(file);
+            event.preventDefault();
+            break;
+          }
+        }
+      });
+    }
+
 
     playerForm.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -2088,15 +2169,31 @@
         playerStatus.className = "status error";
         return;
       }
-      const newPlayer = { id: createId(), name, role };
+           const newPlayer = {
+        id: createId(),
+        name,
+        role,
+        photoData: newPlayerPhotoData || null,
+      };
       players.push(newPlayer);
       savePlayers();
       renderPlayers();
       renderSeasonInsights();
+
+      // очистка формы
       nameInput.value = "";
       roleSelect.value = ROLE_TYPES.FORWARD;
+      newPlayerPhotoData = null;
+      if (newPlayerPhotoPreview) {
+        newPlayerPhotoPreview.style.display = "none";
+      }
+      if (newPlayerPhotoImg) {
+        newPlayerPhotoImg.src = "";
+      }
+
       playerStatus.textContent = "Игрок добавлен в базу.";
       playerStatus.className = "status success";
+
     });
 
     statsForm.addEventListener("submit", (e) => {
