@@ -749,29 +749,78 @@
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        const data = JSON.parse(ev.target.result);
-        if (!data || !Array.isArray(data.players) || !Array.isArray(data.stats)) {
-          importStatusEl.textContent = "❌ Некорректный файл: нет players или stats.";
-          importStatusEl.className = "status error";
-          return;
-        }
-        players = data.players;
-        stats = data.stats;
-        prepareAggregates();
-        populatePlayerSelect();
-        importStatusEl.textContent = "✅ Данные импортированы. Выбери игрока слева.";
-        importStatusEl.className = "status success";
-      } catch (err) {
-        console.error(err);
-        importStatusEl.textContent = "❌ Ошибка при чтении JSON-файла.";
-        importStatusEl.className = "status error";
-      }
-    };
+reader.onload = (ev) => {
+  try {
+    const data = JSON.parse(ev.target.result);
+    if (!data || !Array.isArray(data.players) || !Array.isArray(data.stats)) {
+      importStatusEl.textContent = "❌ Некорректный файл: нет players или stats.";
+      importStatusEl.className = "status error";
+      return;
+    }
+
+    // 🔧 главное: нормализуем данные под формат профиля
+    normalizeImportedData(data);
+
+    if (!players.length || !stats.length) {
+      importStatusEl.textContent = "⚠️ Данные импортированы, но игроков или статистики не нашлось.";
+      importStatusEl.className = "status error";
+      populatePlayerSelect();
+      return;
+    }
+
+    prepareAggregates();
+    populatePlayerSelect();
+    importStatusEl.textContent = "✅ Данные импортированы. Выбери игрока слева.";
+    importStatusEl.className = "status success";
+  } catch (err) {
+    console.error(err);
+    importStatusEl.textContent = "❌ Ошибка при чтении JSON-файла.";
+    importStatusEl.className = "status error";
+  }
+};
+
     reader.readAsText(file, "utf-8");
   });
 
+function normalizeImportedData(raw) {
+  const safePlayers = Array.isArray(raw.players) ? raw.players : [];
+  const safeStats = Array.isArray(raw.stats) ? raw.stats : [];
+
+  // Игроки: гарантируем id, name, role, photoData
+  players = safePlayers.map(p => {
+    const role =
+      p.role && (p.role === "forward" || p.role === "midfield" || p.role === "defender")
+        ? p.role
+        : ROLE_TYPES.FORWARD; // дефолт если что-то странное
+
+    return {
+      id: String(p.id || ""),
+      name: String(p.name || "").trim(),
+      role,
+      // фото можем использовать, если оно было в бэкапе
+      photoData: p.photoData || null,
+    };
+  }).filter(p => p.id && p.name);
+
+  // Статистика: всё в числа
+  stats = safeStats.map(s => {
+    const season = typeof s.season === "string"
+      ? parseInt(s.season, 10)
+      : Number(s.season);
+
+    return {
+      id: s.id ? String(s.id) : null,
+      playerId: String(s.playerId || ""),
+      season: isNaN(season) ? 0 : season,
+      matches: numberOrZero(s.matches),
+      goals: numberOrZero(s.goals),
+      assists: numberOrZero(s.assists),
+      rating: numberOrZero(s.rating),
+    };
+  }).filter(s => s.playerId && s.season > 0);
+}
+
+  
   function prepareAggregates() {
     seasonRows = [];
     perPlayerSeason.clear();
