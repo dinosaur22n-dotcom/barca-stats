@@ -356,6 +356,56 @@
       color: var(--text-muted);
       margin-top: 4px;
     }
+    /* Prime сезон + таймлайн */
+    .prime-block {
+      margin-top: 8px;
+    }
+
+    .prime-text {
+      font-size: 0.8rem;
+      margin-top: 6px;
+      margin-bottom: 4px;
+    }
+
+    .timeline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: flex-end;
+      padding: 4px 2px 0;
+      border-radius: 10px;
+      background: rgba(2, 11, 26, 0.7);
+      border: 1px dashed rgba(148, 163, 184, 0.35);
+    }
+
+    .timeline-point {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      min-width: 20px;
+    }
+
+    .timeline-dot {
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--barca-blue), var(--barca-claret));
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      opacity: 0.7;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+    }
+
+    .timeline-dot-prime {
+      border-color: var(--barca-gold);
+      box-shadow: 0 0 0 2px rgba(253, 185, 19, 0.9), 0 4px 10px rgba(0, 0, 0, 0.9);
+      opacity: 1;
+    }
+
+    .timeline-label {
+      font-size: 0.65rem;
+      opacity: 0.9;
+    }    
   </style>
 </head>
 <body>
@@ -448,6 +498,14 @@
           <div class="total-pill" id="totalGA">Г+П: 0</div>
         </div>
 
+        <div class="prime-block">
+          <div id="primeSeasonText" class="prime-text muted">
+            Prime сезон будет показан после выбора игрока.
+          </div>
+          <div id="primeTimeline" class="timeline"></div>
+        </div>
+
+        
         <div class="chart-container">
           <div class="chart-bar">
             <span>График по сезонам</span>
@@ -746,15 +804,26 @@
   const seasonAchievementsEl = document.getElementById("seasonAchievements");
   const careerAchievementsEl = document.getElementById("careerAchievements");
   const chartCanvasEl = document.getElementById("playerChart");
+    const primeSeasonTextEl = document.getElementById("primeSeasonText");
+  const primeTimelineEl = document.getElementById("primeTimeline");
 
-  function hideProfile() {
+
+    function hideProfile() {
     profileContentEl.style.display = "none";
     profileIntroEl.textContent = "Импортируй данные и выбери игрока, чтобы увидеть его историю в клубе.";
     if (chart) {
       chart.destroy();
       chart = null;
     }
+    if (primeSeasonTextEl) {
+      primeSeasonTextEl.textContent = "Prime сезон будет показан после выбора игрока.";
+      primeSeasonTextEl.classList.add("muted");
+    }
+    if (primeTimelineEl) {
+      primeTimelineEl.innerHTML = "";
+    }
   }
+
 
   function renderProfile(playerId) {
     const player = players.find(p => p.id === playerId);
@@ -774,6 +843,75 @@
     totalGoalsEl.textContent = `Голы: ${totals.goals}`;
     totalAssistsEl.textContent = `Пасы: ${totals.assists}`;
     totalGAEl.textContent = `Г+П: ${totals.ga}`;
+        // --- Prime сезон и таймлайн ---
+    const rows = (perPlayerSeason.get(playerId) || []).slice().sort((a, b) => a.season - b.season);
+
+    if (!rows.length) {
+      if (primeSeasonTextEl) {
+        primeSeasonTextEl.textContent = "Пока нет сыгранных сезонов.";
+        primeSeasonTextEl.classList.add("muted");
+      }
+      if (primeTimelineEl) {
+        primeTimelineEl.innerHTML = "";
+      }
+    } else {
+      // находим prime-сезон по максимальному импакту / игру
+      let primeRow = rows[0];
+      rows.forEach((r) => {
+        if ((r.impactPg || 0) > (primeRow.impactPg || 0)) {
+          primeRow = r;
+        }
+      });
+
+      if (primeSeasonTextEl) {
+        const ipg = (primeRow.impactPg || 0).toFixed(2);
+        const iseason = (primeRow.impactSeason || 0).toFixed(2);
+        primeSeasonTextEl.textContent =
+          `Prime сезон: ${primeRow.season} (Импакт / игру ${ipg}, импакт за сезон ${iseason})`;
+        primeSeasonTextEl.classList.remove("muted");
+      }
+
+      if (primeTimelineEl) {
+        primeTimelineEl.innerHTML = "";
+        const impacts = rows.map((r) => r.impactPg || 0);
+        const minImp = Math.min(...impacts);
+        const maxImp = Math.max(...impacts);
+
+        rows.forEach((r) => {
+          const value = r.impactPg || 0;
+          let norm = 0.5;
+          if (maxImp > minImp) {
+            norm = (value - minImp) / (maxImp - minImp);
+          }
+          if (!isFinite(norm) || isNaN(norm)) norm = 0.5;
+          const size = 14 + norm * 10; // размер кружка
+
+          const point = document.createElement("div");
+          point.className = "timeline-point";
+
+          const dot = document.createElement("div");
+          dot.className = "timeline-dot";
+          dot.style.width = size + "px";
+          dot.style.height = size + "px";
+
+          if (r === primeRow) {
+            dot.classList.add("timeline-dot-prime");
+          }
+
+          dot.title = `Сезон ${r.season}: импакт / игру ${value.toFixed(2)}, ` +
+                      `импакт за сезон ${(r.impactSeason || 0).toFixed(2)}`;
+
+          const label = document.createElement("div");
+          label.className = "timeline-label";
+          label.textContent = r.season;
+
+          point.appendChild(dot);
+          point.appendChild(label);
+          primeTimelineEl.appendChild(point);
+        });
+      }
+    }
+
 
     renderChart(playerId, metricSelectEl.value);
     renderSeasonAchievements(playerId);
