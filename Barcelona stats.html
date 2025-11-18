@@ -523,6 +523,39 @@ td.sticky-col-3 {
       text-shadow: 0 0 4px rgba(34, 197, 94, 0.3);
     }
 
+    .usage-tag {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      display: inline-block;
+    }
+
+    .usage-rare-high {
+      background: rgba(59, 130, 246, 0.2);   /* синий */
+      border: 1px solid rgba(59, 130, 246, 0.8);
+      color: #bfdbfe;
+    }
+
+    .usage-core {
+      background: rgba(34, 197, 94, 0.18);   /* зелёный */
+      border: 1px solid rgba(34, 197, 94, 0.9);
+      color: #bbf7d0;
+    }
+
+    .usage-rotation {
+      background: rgba(148, 163, 184, 0.16); /* серый */
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      color: #e5e7eb;
+    }
+
+    .usage-overused {
+      background: rgba(248, 113, 113, 0.16); /* красный */
+      border: 1px solid rgba(248, 113, 113, 0.9);
+      color: #fecaca;
+    }
+
+    
     .file-input {
       font-size: 0.78rem;
       color: var(--text-muted);
@@ -982,6 +1015,23 @@ td.sticky-col-3 {
       <div id="seasonInsightsContent" class="season-insights">
         <!-- наполняется скриптом -->
       </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          🧩 Матчи vs импакт
+          <span class="card-pill">Матрица использования</span>
+        </div>
+      </div>
+      <p class="card-description">
+        Для выбранного сезона: сочетание количества матчей и импакта за игру. 
+        Помогает понять, кого нагружать больше, а кому дать шанс.
+      </p>
+      <div class="table-wrapper" id="usageMatrixWrapper">
+        <div class="empty-state">
+          Выбери сезон с матчами, чтобы увидеть матрицу.
+        </div>
+      </div>
+    </div>      
     </div>
   </section>
 </main>
@@ -1958,17 +2008,144 @@ if (h.key === "playerName") td.classList.add("sticky-col-2");
     return rows;
   }
 
+  function median(arr) {
+    const valid = arr.map(Number).filter((v) => !isNaN(v));
+    if (!valid.length) return 0;
+    valid.sort((a, b) => a - b);
+    const mid = Math.floor(valid.length / 2);
+    if (valid.length % 2 === 0) {
+      return (valid[mid - 1] + valid[mid]) / 2;
+    }
+    return valid[mid];
+  }
+
+    // Матрица "матчи vs импакт / игру" для выбранного сезона
+  function renderUsageMatrix(rowsForSeason) {
+    const wrapper = document.getElementById("usageMatrixWrapper");
+    if (!wrapper) return;
+
+    wrapper.innerHTML = "";
+
+    if (!rowsForSeason || !rowsForSeason.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty-state";
+      empty.textContent = "Нет данных для построения матрицы — выбери сезон с матчами.";
+      wrapper.appendChild(empty);
+      return;
+    }
+
+    const matchesArr = rowsForSeason.map((r) => Number(r.matches) || 0);
+    const impactArr  = rowsForSeason.map((r) => Number(r.impactPerGame) || 0);
+
+    const medianMatches = median(matchesArr);
+    const medianImpact  = median(impactArr);
+
+    function classify(r) {
+      const m   = Number(r.matches) || 0;
+      const imp = Number(r.impactPerGame) || 0;
+
+      const manyMatches = m >= medianMatches;
+      const highImpact  = imp >= medianImpact;
+
+      if (!manyMatches && highImpact) return "rareHigh";   // нужно чаще выпускать
+      if (manyMatches  && highImpact) return "core";       // топ команды
+      if (!manyMatches && !highImpact) return "rotation";  // глубинная ротация
+      return "overused";                                   // много матчей + низкий импакт
+    }
+
+    const table = document.createElement("table");
+    const thead = document.createElement("thead");
+    const tbody = document.createElement("tbody");
+
+    const trHead = document.createElement("tr");
+    ["№", "Игрок", "Матчи", "Импакт / игру", "Категория"].forEach((label) => {
+      const th = document.createElement("th");
+      th.textContent = label;
+      trHead.appendChild(th);
+    });
+    thead.appendChild(trHead);
+
+    // можно отсортировать по матчам, затем по импакту
+    const sorted = rowsForSeason
+      .slice()
+      .sort((a, b) => {
+        const ma = Number(a.matches) || 0;
+        const mb = Number(b.matches) || 0;
+        if (mb !== ma) return mb - ma;
+        const ia = Number(a.impactPerGame) || 0;
+        const ib = Number(b.impactPerGame) || 0;
+        return ib - ia;
+      });
+
+    sorted.forEach((r, idx) => {
+      const tr = document.createElement("tr");
+      const catKey = classify(r);
+
+      const tdIndex = document.createElement("td");
+      tdIndex.textContent = idx + 1;
+      tdIndex.style.textAlign = "center";
+      tr.appendChild(tdIndex);
+
+      const tdName = document.createElement("td");
+      tdName.style.textAlign = "left";
+      tdName.innerHTML = renderPlayerCell(r.playerId);
+      tr.appendChild(tdName);
+
+      const tdMatches = document.createElement("td");
+      tdMatches.textContent = r.matches;
+      tr.appendChild(tdMatches);
+
+      const tdImpact = document.createElement("td");
+      tdImpact.textContent = Number(r.impactPerGame || 0).toFixed(2);
+      tr.appendChild(tdImpact);
+
+      const tdCat = document.createElement("td");
+      const span = document.createElement("span");
+      span.className = "usage-tag " + {
+        rareHigh: "usage-rare-high",
+        core: "usage-core",
+        rotation: "usage-rotation",
+        overused: "usage-overused",
+      }[catKey];
+
+      if (catKey === "rareHigh") {
+        span.textContent = "Нужно чаще выпускать";
+      } else if (catKey === "core") {
+        span.textContent = "Топ команды";
+      } else if (catKey === "rotation") {
+        span.textContent = "Глубинная ротация";
+      } else {
+        span.textContent = "Нужно дать шанс другим";
+      }
+
+      tdCat.appendChild(span);
+      tr.appendChild(tdCat);
+
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    wrapper.appendChild(table);
+  }
+
   // Аналитика сезона: награды, профили, команда сезона
   function renderSeasonInsights(prebuiltRows) {
     const titleEl = document.getElementById("seasonInsightsTitle");
     const contentEl = document.getElementById("seasonInsightsContent");
     contentEl.innerHTML = "";
+        const usageWrapper = document.getElementById("usageMatrixWrapper");
+
 
     if (!stats.length || !players.length) {
       titleEl.textContent =
         "Добавь игроков и сезонную статистику — здесь появятся награды и команда сезона.";
+      if (usageWrapper) {
+        usageWrapper.innerHTML = "<div class='empty-state'>Нет данных для построения матрицы. Добавь сезонную статистику.</div>";
+      }
       return;
     }
+
 
     const seasonFilter = document.getElementById("seasonFilter").value;
     let seasonToUse;
@@ -2007,8 +2184,12 @@ if (h.key === "playerName") td.classList.add("sticky-col-2");
 
     if (!rows.length) {
       contentEl.innerHTML = "<div class='empty-state'>За этот сезон нет данных для аналитики.</div>";
+      if (usageWrapper) {
+        usageWrapper.innerHTML = "<div class='empty-state'>За этот сезон нет данных для матрицы использования.</div>";
+      }
       return;
     }
+
 
     // Обогощаем строку именем и ролью (если пришли неготовые)
     if (!rows[0].playerName) {
@@ -2098,17 +2279,6 @@ if (h.key === "playerName") td.classList.add("sticky-col-2");
     // --- Профили (1.5: качество vs объём) ---
     const impactPgValues = rows.map((r) => r.impactPerGame);
     const seasonImpactValues = rows.map((r) => r.seasonImpact);
-
-    function median(arr) {
-      const valid = arr.map(Number).filter((v) => !isNaN(v));
-      if (!valid.length) return 0;
-      valid.sort((a, b) => a - b);
-      const mid = Math.floor(valid.length / 2);
-      if (valid.length % 2 === 0) {
-        return (valid[mid - 1] + valid[mid]) / 2;
-      }
-      return valid[mid];
-    }
 
     const medianImpactPg = median(impactPgValues);
     const medianSeasonImpact = median(seasonImpactValues);
@@ -2295,6 +2465,9 @@ if (h.key === "playerName") td.classList.add("sticky-col-2");
 
     contentEl.appendChild(awardsBlock);
     contentEl.appendChild(pitchBlock);
+        // матрица "матчи vs импакт / игру" для этого же сезона
+    renderUsageMatrix(rows);
+
   }
 
   function showChart() {
