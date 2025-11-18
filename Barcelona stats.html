@@ -2737,7 +2737,41 @@ if (h.key === "playerName") td.classList.add("sticky-col-2");
       const assists = numberOrZero(document.getElementById("assists").value);
       const rating = numberOrZero(document.getElementById("rating").value);
 
-          // Быстрый ввод матча
+      if (!playerId) {
+        statsStatus.textContent = "Сначала выбери игрока.";
+        statsStatus.className = "status error";
+        return;
+      }
+
+      if (
+        isNaN(season) ||
+        (matches === 0 && goals === 0 && assists === 0 && rating === 0)
+      ) {
+        statsStatus.textContent =
+          "Заполни хотя бы один числовой показатель (матчи, голы, пасы или оценка).";
+        statsStatus.className = "status error";
+        return;
+      }
+
+      const entry = {
+        id: createId(),
+        season,
+        playerId,
+        matches,
+        goals,
+        assists,
+        rating,
+      };
+      stats.push(entry);
+      saveStats();
+
+      renderSeasonTable();
+      renderTotalTable();
+      statsStatus.textContent = "Статистика сезона сохранена.";
+      statsStatus.className = "status success";
+    });
+
+        // Быстрый ввод матча
     if (matchForm) {
       matchForm.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -2822,42 +2856,7 @@ if (h.key === "playerName") td.classList.add("sticky-col-2");
         }
       });
     }
-
-
-      if (!playerId) {
-        statsStatus.textContent = "Сначала выбери игрока.";
-        statsStatus.className = "status error";
-        return;
-      }
-
-      if (
-        isNaN(season) ||
-        (matches === 0 && goals === 0 && assists === 0 && rating === 0)
-      ) {
-        statsStatus.textContent =
-          "Заполни хотя бы один числовой показатель (матчи, голы, пасы или оценка).";
-        statsStatus.className = "status error";
-        return;
-      }
-
-      const entry = {
-        id: createId(),
-        season,
-        playerId,
-        matches,
-        goals,
-        assists,
-        rating,
-      };
-      stats.push(entry);
-      saveStats();
-
-      renderSeasonTable();
-      renderTotalTable();
-      statsStatus.textContent = "Статистика сезона сохранена.";
-      statsStatus.className = "status success";
-    });
-
+    
     document
       .getElementById("seasonFilter")
       .addEventListener("change", () => {
