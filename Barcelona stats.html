@@ -845,6 +845,53 @@ td.sticky-col-3 {
       </p>
     </div>
 
+    <!-- Быстрый ввод матча -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          ⚡ Быстрый ввод матча
+          <span class="card-pill">По одному матчу</span>
+        </div>
+      </div>
+      <p class="card-description">
+        После матча выбери сезон и игрока, укажи голы, пасы и оценку — статистика сезона обновится автоматически.
+      </p>
+      <form id="matchForm">
+        <div class="form-row">
+          <div class="form-group" style="flex:0 0 80px;">
+            <label for="matchSeason">Сезон</label>
+            <select id="matchSeason"></select>
+          </div>
+          <div class="form-group">
+            <label for="matchPlayer">Игрок</label>
+            <select id="matchPlayer"></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="matchGoals">Голы за матч</label>
+            <input type="number" id="matchGoals" min="0" step="1" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label for="matchAssists">Пасы за матч</label>
+            <input type="number" id="matchAssists" min="0" step="1" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label for="matchRating">Оценка за матч</label>
+            <input type="number" id="matchRating" min="0" max="10" step="0.1" placeholder="0.0" />
+          </div>
+          <div class="form-group" style="flex:0 0 auto; align-self:flex-end;">
+            <button type="submit">Добавить матч</button>
+          </div>
+        </div>
+      </form>
+      <div class="status" id="matchStatus"></div>
+      <p style="margin-top:6px; font-size:0.75rem; color:var(--text-muted);">
+        Матчи суммируются в сезонную статистику выбранного игрока. Рейтинг пересчитывается как средний по матчам.
+      </p>
+    </div>
+
+    
     <!-- Резервное копирование -->
     <div class="card">
       <div class="card-header">
@@ -1233,19 +1280,31 @@ function saveStats() {
   }
 
   function populateSeasonSelects() {
-    const seasonSelect = document.getElementById("season");
-    const seasonFilter = document.getElementById("seasonFilter");
+  const seasonSelect = document.getElementById("season");
+  const seasonFilter = document.getElementById("seasonFilter");
+  const matchSeasonSelect = document.getElementById("matchSeason"); // 👈 новый селект для быстрых матчей
 
-    seasonSelect.innerHTML = "";
-    seasonFilter.innerHTML = "";
+  if (seasonSelect) seasonSelect.innerHTML = "";
+  if (seasonFilter) seasonFilter.innerHTML = "";
+  if (matchSeasonSelect) matchSeasonSelect.innerHTML = "";
 
-    for (let i = 1; i <= 15; i++) {
+  for (let i = 1; i <= 15; i++) {
+    if (seasonSelect) {
       const opt = document.createElement("option");
       opt.value = i;
       opt.textContent = i;
       seasonSelect.appendChild(opt);
     }
 
+    if (matchSeasonSelect) {
+      const opt2 = document.createElement("option");
+      opt2.value = i;
+      opt2.textContent = i;
+      matchSeasonSelect.appendChild(opt2);
+    }
+  }
+
+  if (seasonFilter) {
     const allOpt = document.createElement("option");
     allOpt.value = "all";
     allOpt.textContent = "Все сезоны";
@@ -1260,42 +1319,58 @@ function saveStats() {
 
     seasonFilter.value = "all";
   }
+}
+
 
   function renderPlayers() {
-    const playersList = document.getElementById("playersList");
-    const statsPlayerSelect = document.getElementById("statsPlayer");
-    const chartPlayerSelect = document.getElementById("chartPlayer"); // теперь может быть null
+  const playersList = document.getElementById("playersList");
+  const statsPlayerSelect = document.getElementById("statsPlayer");
+  const chartPlayerSelect = document.getElementById("chartPlayer"); // может быть null
+  const matchPlayerSelect = document.getElementById("matchPlayer"); // 👈 новый селект для быстрых матчей
 
-    playersList.innerHTML = "";
-    statsPlayerSelect.innerHTML = "";
-    if (chartPlayerSelect) {
-      chartPlayerSelect.innerHTML = "";
-    }
+  if (playersList) playersList.innerHTML = "";
+  if (statsPlayerSelect) statsPlayerSelect.innerHTML = "";
+  if (chartPlayerSelect) chartPlayerSelect.innerHTML = "";
+  if (matchPlayerSelect) matchPlayerSelect.innerHTML = "";
 
-    if (!players.length) {
+  if (!players.length) {
+    if (playersList) {
       const placeholder = document.createElement("div");
       placeholder.className = "empty-state";
       placeholder.textContent = "Добавь игроков, чтобы начать.";
       playersList.appendChild(placeholder);
+    }
 
+    if (statsPlayerSelect) {
       const noneOpt = document.createElement("option");
       noneOpt.value = "";
       noneOpt.textContent = "Сначала добавь игроков";
       statsPlayerSelect.appendChild(noneOpt);
-
-      if (chartPlayerSelect) {
-        const noneOpt2 = document.createElement("option");
-        noneOpt2.value = "";
-        noneOpt2.textContent = "Нет игроков";
-        chartPlayerSelect.appendChild(noneOpt2);
-      }
-      return;
     }
 
-    players
-      .slice()
-      .sort((a, b) => a.name.localeCompare(b.name, "ru"))
-      .forEach((p) => {
+    if (chartPlayerSelect) {
+      const noneOpt2 = document.createElement("option");
+      noneOpt2.value = "";
+      noneOpt2.textContent = "Нет игроков";
+      chartPlayerSelect.appendChild(noneOpt2);
+    }
+
+    if (matchPlayerSelect) {
+      const noneOpt3 = document.createElement("option");
+      noneOpt3.value = "";
+      noneOpt3.textContent = "Нет игроков";
+      matchPlayerSelect.appendChild(noneOpt3);
+    }
+
+    return;
+  }
+
+  players
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name, "ru"))
+    .forEach((p) => {
+      // чипы в списке
+      if (playersList) {
         const chip = document.createElement("div");
         chip.className = "player-chip";
         chip.dataset.playerId = p.id;
@@ -1329,20 +1404,34 @@ function saveStats() {
         chip.appendChild(span);
         chip.appendChild(removeBtn);
         playersList.appendChild(chip);
+      }
 
+      // селект для сезонного ввода
+      if (statsPlayerSelect) {
         const opt1 = document.createElement("option");
         opt1.value = p.id;
         opt1.textContent = p.name;
         statsPlayerSelect.appendChild(opt1);
+      }
 
-        if (chartPlayerSelect) {
-          const opt2 = document.createElement("option");
-          opt2.value = p.id;
-          opt2.textContent = p.name;
-          chartPlayerSelect.appendChild(opt2);
-        }
-      });
-  }
+      // селект для графика
+      if (chartPlayerSelect) {
+        const opt2 = document.createElement("option");
+        opt2.value = p.id;
+        opt2.textContent = p.name;
+        chartPlayerSelect.appendChild(opt2);
+      }
+
+      // селект для быстрого матча
+      if (matchPlayerSelect) {
+        const opt3 = document.createElement("option");
+        opt3.value = p.id;
+        opt3.textContent = p.name;
+        matchPlayerSelect.appendChild(opt3);
+      }
+    });
+}
+
 
 
 function renderSeasonTable() {
@@ -2387,6 +2476,9 @@ if (h.key === "playerName") td.classList.add("sticky-col-2");
         const newPlayerPhotoDrop = document.getElementById("newPlayerPhotoDrop");
     const newPlayerPhotoPreview = document.getElementById("newPlayerPhotoPreview");
     const newPlayerPhotoImg = document.getElementById("newPlayerPhotoImg");
+        const matchForm = document.getElementById("matchForm");
+    const matchStatus = document.getElementById("matchStatus");
+
 
     if (newPlayerPhotoDrop) {
       newPlayerPhotoDrop.addEventListener("click", () => {
@@ -2471,6 +2563,93 @@ if (h.key === "playerName") td.classList.add("sticky-col-2");
       const goals = numberOrZero(document.getElementById("goals").value);
       const assists = numberOrZero(document.getElementById("assists").value);
       const rating = numberOrZero(document.getElementById("rating").value);
+
+          // Быстрый ввод матча
+    if (matchForm) {
+      matchForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const season = parseInt(document.getElementById("matchSeason").value, 10);
+        const playerId = document.getElementById("matchPlayer").value;
+        const goals = numberOrZero(document.getElementById("matchGoals").value);
+        const assists = numberOrZero(document.getElementById("matchAssists").value);
+        const rating = numberOrZero(document.getElementById("matchRating").value);
+
+        if (!playerId) {
+          if (matchStatus) {
+            matchStatus.textContent = "Сначала выбери игрока.";
+            matchStatus.className = "status error";
+          }
+          return;
+        }
+
+        if (isNaN(season)) {
+          if (matchStatus) {
+            matchStatus.textContent = "Не выбран сезон.";
+            matchStatus.className = "status error";
+          }
+          return;
+        }
+
+        if (goals === 0 && assists === 0 && rating === 0) {
+          if (matchStatus) {
+            matchStatus.textContent = "Заполни хотя бы один показатель матча (голы, пасы или оценка).";
+            matchStatus.className = "status error";
+          }
+          return;
+        }
+
+        // ищем существующую сезонную запись для игрока
+        let entry = stats.find(
+          (s) => s.playerId === playerId && s.season === season
+        );
+
+        if (!entry) {
+          // создаём новую сезонную строку из одного матча
+          entry = {
+            id: createId(),
+            season,
+            playerId,
+            matches: 1,
+            goals,
+            assists,
+            rating: rating || 0,
+          };
+          stats.push(entry);
+        } else {
+          // обновляем сезон: +1 матч, суммируем голы/пасы, рейтинг пересчитываем как средний
+          const oldMatches = numberOrZero(entry.matches);
+          const oldGoals = numberOrZero(entry.goals);
+          const oldAssists = numberOrZero(entry.assists);
+          const oldRating = numberOrZero(entry.rating);
+
+          const newMatches = oldMatches + 1;
+          entry.matches = newMatches;
+          entry.goals = oldGoals + goals;
+          entry.assists = oldAssists + assists;
+
+          if (rating > 0) {
+            const newAvgRating = (oldRating * oldMatches + rating) / newMatches;
+            entry.rating = Number(newAvgRating.toFixed(2));
+          }
+        }
+
+        saveStats();
+        renderSeasonTable();
+        renderTotalTable();
+        renderSeasonInsights();
+
+        // очистка полей матча, игрок/сезон оставляем для удобства
+        document.getElementById("matchGoals").value = "";
+        document.getElementById("matchAssists").value = "";
+        document.getElementById("matchRating").value = "";
+
+        if (matchStatus) {
+          matchStatus.textContent = "Матч добавлен в сезонную статистику.";
+          matchStatus.className = "status success";
+        }
+      });
+    }
+
 
       if (!playerId) {
         statsStatus.textContent = "Сначала выбери игрока.";
